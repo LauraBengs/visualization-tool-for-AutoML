@@ -7,33 +7,35 @@ def main():
     json_file = open('best_first_747_4h.json') 
     converted_file = json.load(json_file) #converts data of json file into a ?list?
     data = converted_file[2].get('data')
-    printElement(data[0])
-    #printAllElements(data)
+    #printElement(data[0])
+    printAllElements(data)
     json_file.close()
 
 def printAllElements(data):
-    for elem in data:
-        printElement(elem)
+    for element in data:
+        printElement(element)
         print("--------------------------------------------------------------")
 
-def printElement(elem):
-    elem_comp, elem_timestamp, elem_perf = extractInfos(elem)
-    elem_comp_dict = ast.literal_eval(elem_comp) #converts string to dict
-    components = getComponents(elem_comp_dict)
-    print("components:", components, "\ntimestamp:", elem_timestamp, "\nperformance:", elem_perf)
+def printElement(element):
+    timestamp = getTimestamp(element)
+    components = getComponents(element)
+    performance = getPerformanceValue(element)
+    print("timestamp:", timestamp,"\ncomponents:", components, "\nperformance:", performance)
 
-def extractInfos(solution):
-    components = solution.get('component_instance')
-    timestamp = solution.get('timestamp_found')
-    performance = solution.get('eval_value')
-    return components, timestamp, performance
+def getComponents(element):
+    components = element.get('component_instance')
+    comp_dict = ast.literal_eval(components) #converts string to dict
+    list_of_components = []
+    elem = comp_dict.get('component').get('name')
+    list_of_components.append(elem)
+    second_elem = comp_dict.get('satisfactionOfRequiredInterfaces').get('W').get('component').get('name')
+    list_of_components.append(second_elem)
+    return components
 
-def getComponents(component_instance: dict):
-    list = []
-    elem = component_instance.get('component').get('name')
-    list.append(elem)
-    second_elem = component_instance.get('satisfactionOfRequiredInterfaces').get('W').get('component').get('name')
-    list.append(second_elem)
-    return list
+def getTimestamp(element):
+    return element.get('timestamp_found')
+
+def getPerformanceValue(element):
+    return element.get('eval_value')
 
 main()
