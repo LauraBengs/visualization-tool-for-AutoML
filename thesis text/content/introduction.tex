@@ -1,0 +1,31 @@
+% !TEX root = ../main.tex
+%
+\chapter{Introduction}
+\label{sec:intro}
+
+\section{Motivation and Problem Statement}
+\label{sec:intro:motivation}
+Automated Machine Learning\footnote{Automated Machine Learning is also sometimes referred to as AutoAI \cite{aiviz}.} (AutoML) is a promising area of research that is constantly gaining importance \cite{humanloop}. While this subfield of machine learning was not widely known some years ago, in the last couple of years more research was focused on this area and found techniques are holding high promises to open up the field of machine learning to non machine learning experts\footnote{Non machine learning experts here specifies people with no or only sparse knowledge in machine learning or statistics, for example a person working in the field of medical science.} \cite{atmseer, xautoml}. 
+\\ \\
+Nevertheless, AutoML systems have some major drawbacks. The black box character\footnote{Lipton defines black boxes as "incomprehensible models" while he refers to understandable models as transparent \cite{mythos}.} of these systems makes it impossible for the user to understand what is going on during calculations \cite{aiviz, pipelineprof, atmseer}. This leads to a lack in trust, as users can not retrace the steps the AutoML system did before and are unable to find answers to questions like "Is the proposed solution indeed the best possible?", "Why did the system suggest this solution?" or "Has the search area been exhausted sufficiently?" \cite{atmseer, aiviz}.
+\\ \\
+Naturally there has been some research regarding trust in AutoML systems. Drozdal et al "showed that increasing transparency via providing users with more information about an AutoML tool significantly increased user trust as well as user understandability in the tool" \cite{trustautoml}. Xanthopoulos et al explain that the "interpretability criteria is arguably on the most important categories for selecting an AutoML service" \cite{humanloop}.
+\\ \\
+On the other hand Zöller et al found out that users refused to adapt machine learning models suggested by AutoML systems due to missing validation and insights in the process \cite{xautoml}. Furthermore people are already building their own tools to visualise the AutoML process since they are not sufficiently supported by existing systems \cite{hypertuner}. 
+\\ \\
+To put it all together: Although there are visualisation tools for AutoML systems, a lack of trust can be recognised due to missing explainability and transparency \cite{xautoml}. There is room for improvement regarding the interpretability of AutoML systems \cite{humanloop} and users should be enabled to further test and validate obtained results. Counteracting the black box character of AutoML systems might be a worthwile goal as this could lead to an increase in user trust, a higher user acceptance as well as to a wider application of AutoML systems.
+\\ \\
+The goal of this thesis is to illustrate the AutoML process to users by visualising a graph based search through different visual attributes of a directed acyclic graph. Therefore a corresponding visualisation tool is being developed. This tool should provide the user with more information about the process, presenting a possibility to understand what is happening during calculations and what decision are being made. Consequently the hope is to get the human back in the loop, including to open up the black box character of AutoML systems, leading to increased trust as well as a higher user acceptance.
+\\ \\
+To this end, the question "How can a visualisation tool increase trust in AutoML systems and does it help users to better understand AutoML processes?" should be investigated.
+
+\section{Results}
+\label{sec:intro:results}
+
+\section{Thesis Structure}
+
+Following the structure of this thesis is outlined to give the reader an overview of what to expect.
+
+\textbf{Chapter \ref{sec:related}} \\[0.2em]
+
+
