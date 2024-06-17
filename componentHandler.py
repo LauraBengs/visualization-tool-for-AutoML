@@ -114,9 +114,3 @@ def printParameter(parameter):
         print("parameterMax:", getParameterMax(parameter))
         print("parameterMinInterval:", getParamterMinIntervall(parameter))
         print("parameterRefineSplits:", getParameterRefineSplits(parameter))
-
-def printSearchSpace(components):
-    for i in range(0, len(components)):
-        print("component", i)
-        printComponent(components[i])
-        print("---------------------------------------------------")
