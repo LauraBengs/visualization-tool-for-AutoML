@@ -1,6 +1,7 @@
 import json 
 import pandas as pd
-import componentHandler 
+import componentHandler
+import numpy
 
 def printSearchSpace(file):
     repository, components, numComponents = openJsonFile(file)
@@ -56,8 +57,8 @@ def addData(filename, category, name, requiredInterface, providedInterface, para
         dependencies.append(componentHandler.getDependencies(elem))
     return category, name, requiredInterface, providedInterface, parameters, dependencies
 
-def getAllComponentNames():
-    pass
+def getAllComponentNames(searchspace):
+    return searchspace["name"].to_numpy()
 
 #print(getSearchSpaceAsDF())
 #printSearchSpace('weka-base.json')
