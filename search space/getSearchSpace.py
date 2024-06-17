@@ -18,11 +18,14 @@ def main():
     parameters = []
     dependencies = []
     
-    for i in range(0, len(components)):
-        print("component", i)
-        searchSpaceHandler.printComponent(components[i])
-        print("---------------------------------------------------")
-
+    for elem in components:
+        category.append(searchSpaceHandler.getCategory(elem))
+        name.append(searchSpaceHandler.getComponentName(elem))
+        requiredInterface.append(searchSpaceHandler.getRequiredInterface(elem))
+        providedInterface.append(searchSpaceHandler.getProvidedInterface(elem))
+        parameters.append(searchSpaceHandler.getListOfParameters(elem))
+        dependencies.append(searchSpaceHandler.getDependencies(elem))
+        
     data = { "category": category,
             "name": name,
             "requiredInterface": requiredInterface,

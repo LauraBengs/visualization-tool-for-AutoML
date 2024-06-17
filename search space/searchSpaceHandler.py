@@ -1,3 +1,5 @@
+# this file provides some basic functions to handle the searchspace descriptions
+
 import numpy as np
 
 def getComponentFullName(component):
@@ -11,6 +13,24 @@ def getComponentName(component):
             raise Exception("Could not get component name due to an empty list")
     name = splitName[len(splitName)-1]
     return name
+
+def getCategory(component):
+    category = np.nan
+    fullName = getComponentFullName(component)
+    splitName = fullName.split(".")
+    if "supportVector" in splitName:
+        category = "Kernel"
+    if "weka" in splitName:
+        if "meta" in splitName:
+            category = "Meta SLC"
+        else:
+            category = "Base SLC"
+    if "meka" in splitName:
+        if "meta" in splitName:
+            category = "Meta MLC"
+        else: 
+            category = "Base MLC"
+    return category
 
 def getRequiredInterface(component):
     requiredInterface = component.get('requiredInterface')
@@ -94,4 +114,9 @@ def printParameter(parameter):
         print("parameterMax:", getParameterMax(parameter))
         print("parameterMinInterval:", getParamterMinIntervall(parameter))
         print("parameterRefineSplits:", getParameterRefineSplits(parameter))
-    
+
+def printSearchSpace(components):
+    for i in range(0, len(components)):
+        print("component", i)
+        printComponent(components[i])
+        print("---------------------------------------------------")
