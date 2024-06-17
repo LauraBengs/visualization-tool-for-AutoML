@@ -19,7 +19,7 @@ def getCategory(component):
     fullName = getComponentFullName(component)
     splitName = fullName.split(".")
     if "supportVector" in splitName:
-        category = "Kernel"
+        return "Kernel"
     if "weka" in splitName:
         if "meta" in splitName:
             category = "Meta SLC"
@@ -54,6 +54,8 @@ def getListOfParameters(component):
         return np.nan
 
 def getDependencies(component):
+    if getCategory(component) == "Kernel":
+        return np.nan
     dependencies = component.get('dependencies')
     if dependencies != []:
         return dependencies

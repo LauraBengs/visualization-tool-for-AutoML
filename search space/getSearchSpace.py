@@ -3,14 +3,7 @@ import pandas as pd
 import numpy as np
 import searchSpaceHandler 
 
-def main():
-    jsonFile = open('weka-base.json') 
-    convertedFile = json.load(jsonFile) #converts data of json file into a ?list?
-    repository = convertedFile.get('repository')
-    print(repository)
-    components = convertedFile.get('components') #now you have a list of all components
-    print("There exist", len(components), "components\n")
-    
+def getSearchSpace():
     category = []
     name = []
     requiredInterface = []
@@ -18,13 +11,10 @@ def main():
     parameters = []
     dependencies = []
     
-    for elem in components:
-        category.append(searchSpaceHandler.getCategory(elem))
-        name.append(searchSpaceHandler.getComponentName(elem))
-        requiredInterface.append(searchSpaceHandler.getRequiredInterface(elem))
-        providedInterface.append(searchSpaceHandler.getProvidedInterface(elem))
-        parameters.append(searchSpaceHandler.getListOfParameters(elem))
-        dependencies.append(searchSpaceHandler.getDependencies(elem))
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('weka-base.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('weka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('meka-base.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('meka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
         
     data = { "category": category,
             "name": name,
@@ -33,10 +23,30 @@ def main():
             "parameters": parameters,
             "dependencies": dependencies
             }
-    myvar = pd.DataFrame(data)
-    print(myvar)
     
+    #pd.options.display.max_columns = None
+    #pd.options.display.max_rows = None
+    allComponents = pd.DataFrame(data)
+    print(allComponents)
+    
+def openJsonFile(filename):
+    jsonFile = open(filename) 
+    convertedFile = json.load(jsonFile) #converts data of json file into a ?list?
+    repository = convertedFile.get('repository')
+    components = convertedFile.get('components') #now you have a list of all components
+    numComponents = len(components)
     jsonFile.close()
-    
+    return repository, components, numComponents
 
-main()
+def addData(filename, category, name, requiredInterface, providedInterface, parameters, dependencies):
+    _, components, _ = openJsonFile(filename)
+    for elem in components:
+        category.append(searchSpaceHandler.getCategory(elem))
+        name.append(searchSpaceHandler.getComponentName(elem))
+        requiredInterface.append(searchSpaceHandler.getRequiredInterface(elem))
+        providedInterface.append(searchSpaceHandler.getProvidedInterface(elem))
+        parameters.append(searchSpaceHandler.getListOfParameters(elem))
+        dependencies.append(searchSpaceHandler.getDependencies(elem))
+    return category, name, requiredInterface, providedInterface, parameters, dependencies
+
+getSearchSpace()
