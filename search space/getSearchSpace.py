@@ -11,10 +11,10 @@ def getSearchSpace():
     parameters = []
     dependencies = []
     
-    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('weka-base.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
-    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('weka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
-    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('meka-base.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
-    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('meka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('search space/weka-base.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('search space/weka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('search space/meka-base.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
+    category, name, requiredInterface, providedInterface, parameters, dependencies = addData('search space/meka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
         
     data = { "category": category,
             "name": name,

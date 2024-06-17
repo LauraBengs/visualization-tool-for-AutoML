@@ -34,30 +34,28 @@ def getCategory(component):
 
 def getRequiredInterface(component):
     requiredInterface = component.get('requiredInterface')
-    if requiredInterface != []:
+    if requiredInterface != [] and requiredInterface != None:
         return requiredInterface
     else: 
         return np.nan
 
 def getProvidedInterface(component):
     providedInterface = component.get('providedInterface')
-    if providedInterface != []:
+    if providedInterface != [] and providedInterface != None:
         return providedInterface
     else:
         return np.nan
 
 def getListOfParameters(component):
     parameters = component.get('parameter')
-    if parameters != []:
+    if parameters != [] and parameters != None:
         return parameters
     else: 
         return np.nan
 
 def getDependencies(component):
-    if getCategory(component) == "Kernel":
-        return np.nan
     dependencies = component.get('dependencies')
-    if dependencies != []:
+    if dependencies != [] and dependencies != None:
         return dependencies
     else:
         return np.nan
