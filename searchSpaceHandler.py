@@ -60,5 +60,8 @@ def addData(filename, category, name, requiredInterface, providedInterface, para
 def getAllComponentNames(searchspace):
     return searchspace["name"].to_numpy()
 
+def getAllCategories(searchspace):
+    return searchspace["category"].to_numpy()
+
 #print(getSearchSpaceAsDF())
 #printSearchSpace('weka-base.json')

@@ -22,14 +22,14 @@ def getCategory(component):
         return "Kernel"
     if "weka" in splitName:
         if "meta" in splitName:
-            category = "Meta SLC"
+            category = "MetaSLC"
         else:
-            category = "Base SLC"
+            category = "BaseSLC"
     if "meka" in splitName:
         if "meta" in splitName:
-            category = "Meta MLC"
+            category = "MetaMLC"
         else: 
-            category = "Base MLC"
+            category = "BaseMLC"
     return category
 
 def getRequiredInterface(component):
