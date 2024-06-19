@@ -1,8 +1,10 @@
 import searchSpaceHandler
-from dash import Dash, html
+from dash import Dash, html, dcc, Input, Output, callback, State
 import dash_cytoscape as cyto
+import dash_bootstrap_components as dbc
 
-app = Dash(__name__)
+#app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 dataPoints = []
 
@@ -31,13 +33,30 @@ style = [
 
 app.layout = html.Div([
     cyto.Cytoscape(
-        id='searchspace',
+        id='components',
         layout={'name': 'preset'},
         style={'width': '100%', 'height': '600px'},
         elements=dataPoints,
         stylesheet=style
-    )
+    ),
+    html.P(id='ClickedComponent'),
+    dbc.Modal(
+            [
+                dbc.ModalHeader(id="modal-header"),
+                dbc.ModalBody(id="modal-text"),
+            ],
+            id="modal",
+            is_open=False,
+        )
 ])
+ 
+@callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('components', 'tapNodeData'), State("modal", "is_open"))
+def toggle_modal(data, is_open): 
+    if data is not None:
+        modalHeader = data['label']
+        modalText = "Soon more info about this component will be available!"
+        return not is_open, modalHeader, modalText
+    return is_open, '', ''
 
 if __name__ == '__main__':
     app.run(debug=True)
