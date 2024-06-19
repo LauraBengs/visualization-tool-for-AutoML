@@ -4,8 +4,8 @@ import componentHandler
 import numpy
 import requests
 
-def printSearchSpace(file):
-    repository, components, numComponents = openJsonFile(file)
+def printSearchSpace(link):
+    repository, components, numComponents = openJsonFileFromGithub(link)
     print("repository:", repository, "\nnumber of components:", numComponents, "\n")
     for i in range(0, len(components)):
         print("component", i)
@@ -24,9 +24,6 @@ def getSearchSpaceAsDF():
     
     for link in searchSpaceLinks:
         category, name, requiredInterface, providedInterface, parameters, dependencies = addData(link, category, name, requiredInterface, providedInterface, parameters, dependencies)
-    #category, name, requiredInterface, providedInterface, parameters, dependencies = addData('weka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
-    #category, name, requiredInterface, providedInterface, parameters, dependencies = addData('meka-base.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
-    #category, name, requiredInterface, providedInterface, parameters, dependencies = addData('meka-meta.json', category, name, requiredInterface, providedInterface, parameters, dependencies)
         
     data = { "category": category,
             "name": name,
@@ -41,7 +38,7 @@ def getSearchSpaceAsDF():
     searchSpace = pd.DataFrame(data)
     return searchSpace
     
-def openJsonFile(link):
+def openJsonFileFromGithub(link):
     file = requests.get(link)
     jsonFile = json.loads(file.text)
     repository = jsonFile.get('repository')
@@ -50,7 +47,7 @@ def openJsonFile(link):
     return repository, components, numComponents
 
 def addData(link, category, name, requiredInterface, providedInterface, parameters, dependencies):
-    _, components, _ = openJsonFile(link)
+    _, components, _ = openJsonFileFromGithub(link)
     for elem in components:
         category.append(componentHandler.getCategory(elem))
         name.append(componentHandler.getComponentName(elem))
