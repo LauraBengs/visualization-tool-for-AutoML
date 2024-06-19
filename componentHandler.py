@@ -80,6 +80,10 @@ def getParameterName(parameter):
     parameterName = parameter.get('name')
     return parameterName
 
+def getParameterComment(parameter):
+    parameterComment = parameter.get('comment')
+    return parameterComment
+
 def getParameterType(parameter):
     parameterType = parameter.get('type')
     return parameterType
@@ -103,6 +107,10 @@ def getParamterMinIntervall(parameter):
 def getParameterRefineSplits(parameter):
     parameterRefineSplits = parameter.get('refineSplits')
     return parameterRefineSplits
+
+def getParametersValues(parameter):
+    parameterValues = parameter.get('values')
+    return parameterValues
     
 def printParameter(parameter):
     print("parameterName:", getParameterName(parameter))
