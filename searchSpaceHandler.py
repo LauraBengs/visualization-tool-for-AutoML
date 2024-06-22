@@ -73,61 +73,61 @@ def getAllCategories(searchspace):
 def getComponentInfo(info):
     text = ""
     fullName = info.iat[0,2]
-    text = text + "Full name: " + fullName + "\n\n"
+    text = text + "**Full name:** " + fullName + "\n"
 
     category = info.iat[0,0]
-    text = text + "Category: " + category + "\n\n"
+    text = text + "**Category:** " + category + "\n"
     
     requiredInterface = info.iat[0,3]
     if type(requiredInterface) is list:
-        text = text + "Required interface: " + str(requiredInterface) + "\n"
+        text = text + "**Required interface(s):** " + str(requiredInterface) + "\n"
     else: 
-        text = text + "Required interface: None\n"
+        text = text + "**Required interface(s):** None\n"
     
     providedInterface = info.iat[0,4]
     if type(providedInterface) is list:
-        text = text + "\nProvided interface(s):\n"
+        text = text + "**Provided interface(s):**\n"
         for elem in providedInterface:
             text = text + "- " + elem +"\n"
     else: 
-        text = text + "Provided interface: None\n"
+        text = text + "**Provided interface(s):** None\n"
     
     dependencies = info.iat[0,6]
     if type(dependencies) is list: 
-        text = text + "\nDependecies:" + str(dependencies) + "\n"
+        text = text + "\n**Dependecies:**" + str(dependencies) + "\n"
     else:
-        text = text + "\nDependencies: None\n"
+        text = text + "\n**Dependencies:** None\n"
     
     parameters = info.iat[0, 5]
     if type(parameters) is list:
-        text = text + "\nParameters: This component has " +  str(len(parameters)) + " parameters\n"
+        text = text + "**Parameter(s):** This component has " +  str(len(parameters)) + " parameters\n"
         for i in range(0, len(parameters)):
-            text = text + "Parameter " + str(i) + ": " + componentHandler.getParameterName(parameters[i]) +"\n"
+            text = text + "\n- Parameter " + str(i+1) + ": name = " + componentHandler.getParameterName(parameters[i]) + ", "
             parameterType = componentHandler.getParameterType(parameters[i]) 
             if parameterType != None:
-                text = text + "         - type: " + parameterType + "\n"
+                text = text + "type = " + parameterType + ", "
             default = componentHandler.getParameterDefault(parameters[i])
             if default != None:
-                text = text + "         - default: " + str(default) + "\n"
+                text = text + "default = " + str(default) + ", "
             min = componentHandler.getParameterMin(parameters[i])
             if min != None:
-                text = text + "         - min: " + str(min) + "\n"
+                text = text + "min =  " + str(min) + ", "
             max = componentHandler.getParameterMax(parameters[i])
             if max != None:
-                text = text + "         - max: " + str(max) + "\n"
+                text = text + "max = " + str(max) + ", "
             minInterval = componentHandler.getParamterMinIntervall(parameters[i])
             if minInterval != None:
-                text = text + "         - minInterval: " + str(minInterval) + "\n"
+                text = text + "minInterval = " + str(minInterval) + ","
             refineSplits = componentHandler.getParameterRefineSplits(parameters[i])
             if refineSplits != None:
-                text = text + "         - refineSplits: "+ str(refineSplits) + "\n"
+                text = text + "refineSplits = "+ str(refineSplits) + ","
             values = componentHandler.getParametersValues(parameters[i])
             if values != None:
-                text = text + "         - values: " + str(values) + "\n"
+                text = text + "values = " + str(values) + ","
             comment = componentHandler.getParameterComment(parameters[i])
             if comment != None:
-                text = text + "         - comment: " + comment + "\n"
+                text = text + "comment: " + comment
     else:
-        text = text + "This component has no parameters"
+        text = text + "**Parameters:** This component has no parameters"
     
     return text

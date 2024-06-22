@@ -1,5 +1,5 @@
 import searchSpaceHandler
-from dash import Dash, html, Input, Output, callback, State
+from dash import Dash, html, Input, Output, callback, State, dcc
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 
@@ -48,7 +48,8 @@ app.layout = html.Div([
             id="modal",
             scrollable = True,
             is_open=False,
-            style = {'white-space': 'pre'}
+            style = {'white-space': 'pre'},
+            size = "lg"
         )
 ])
  
@@ -62,7 +63,9 @@ def getInfosForModal(data):
 @callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('components', 'tapNodeData'), State("modal", "is_open"))
 def toggle_modal(data, is_open): 
     if data is not None:
-        modalHeader,modalText = getInfosForModal(data)
+        header, text = getInfosForModal(data)
+        modalHeader = dcc.Markdown("#### " + header)
+        modalText = dcc.Markdown(text)
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
