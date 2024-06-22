@@ -16,20 +16,20 @@ def getComponentName(component):
 
 def getCategory(component):
     category = np.nan
-    fullName = getComponentFullName(component)
-    splitName = fullName.split(".")
-    if "supportVector" in splitName:
+    providedInterfaces = getProvidedInterface(component)
+    if providedInterfaces == []:
+        raise Exception("Could not get component category due to an empty list")
+    if "K" in providedInterfaces:
         return "Kernel"
-    if "weka" in splitName:
-        if "meta" in splitName:
-            category = "MetaSLC"
-        else:
-            category = "BaseSLC"
-    if "meka" in splitName:
-        if "meta" in splitName:
-            category = "MetaMLC"
-        else: 
-            category = "BaseMLC"
+    if "MetaClassifier" in providedInterfaces:
+        category = "MetaSLC"
+    if "BaseClassifier" in providedInterfaces:
+        category = "BaseSLC"
+    if "BasicMLClassifier" in providedInterfaces:
+        category = "BaseMLC"
+    if "MetaMLClassifier" in providedInterfaces:
+        category = "MetaMLC"
+            
     return category
 
 def getRequiredInterface(component):
