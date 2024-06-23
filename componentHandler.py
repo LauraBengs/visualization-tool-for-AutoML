@@ -33,11 +33,14 @@ def getCategory(component):
     return category
 
 def getRequiredInterface(component):
-    requiredInterface = component.get('requiredInterface')
-    if requiredInterface != [] and requiredInterface != None:
-        return requiredInterface
-    else: 
+    interfaces = component.get('requiredInterface')
+    if interfaces == [] or interfaces == None:
         return np.nan
+    requiredInterface = []
+    for elem in interfaces:
+        requiredInterface.append(elem.get('name'))
+    return requiredInterface
+        
 
 def getProvidedInterface(component):
     providedInterface = component.get('providedInterface')

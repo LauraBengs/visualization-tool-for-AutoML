@@ -80,17 +80,19 @@ def getComponentInfo(info):
     
     requiredInterface = info.iat[0,3]
     if type(requiredInterface) is list:
-        text = text + "**Required interface(s):** " + str(requiredInterface) + "\n"
+        text = text + "**Required interface(s):** \n"
+        for elem in requiredInterface:
+            text = text + "- " + elem +"\n"
     else: 
         text = text + "**Required interface(s):** None\n"
     
     providedInterface = info.iat[0,4]
     if type(providedInterface) is list:
-        text = text + "**Provided interface(s):**\n"
+        text = text + "\n**Provided interface(s):**\n"
         for elem in providedInterface:
             text = text + "- " + elem +"\n"
     else: 
-        text = text + "**Provided interface(s):** None\n"
+        text = text + "\n**Provided interface(s):** None\n"
     
     dependencies = info.iat[0,6]
     if type(dependencies) is list: 
@@ -102,31 +104,37 @@ def getComponentInfo(info):
     if type(parameters) is list:
         text = text + "**Parameter(s):** This component has " +  str(len(parameters)) + " parameters\n"
         for i in range(0, len(parameters)):
-            text = text + "\n- Parameter " + str(i+1) + ": name = " + componentHandler.getParameterName(parameters[i]) + ", "
+            text = text + "\n- Parameter " + str(i+1) + ": name = " + componentHandler.getParameterName(parameters[i])
             parameterType = componentHandler.getParameterType(parameters[i]) 
             if parameterType != None:
-                text = text + "type = " + parameterType + ", "
+                text = text + ", type = " + parameterType
             default = componentHandler.getParameterDefault(parameters[i])
             if default != None:
-                text = text + "default = " + str(default) + ", "
+                text = text + ", default = " + str(default)
             min = componentHandler.getParameterMin(parameters[i])
             if min != None:
-                text = text + "min =  " + str(min) + ", "
+                text = text + ", min =  " + str(min)
             max = componentHandler.getParameterMax(parameters[i])
             if max != None:
-                text = text + "max = " + str(max) + ", "
+                text = text + ", max = " + str(max)
             minInterval = componentHandler.getParamterMinIntervall(parameters[i])
             if minInterval != None:
-                text = text + "minInterval = " + str(minInterval) + ","
+                text = text + ", minInterval = " + str(minInterval) 
             refineSplits = componentHandler.getParameterRefineSplits(parameters[i])
             if refineSplits != None:
-                text = text + "refineSplits = "+ str(refineSplits) + ","
+                text = text + ", refineSplits = "+ str(refineSplits)
             values = componentHandler.getParametersValues(parameters[i])
             if values != None:
-                text = text + "values = " + str(values) + ","
+                text = text + ", values = "
+                for v in range(0, len(values)):
+                    if v == 0:
+                        text = text + "\[" + values[v]
+                    else:
+                        text = text + ", " + values[v]
+                text = text + "\]"
             comment = componentHandler.getParameterComment(parameters[i])
             if comment != None:
-                text = text + "comment: " + comment
+                text = text + ", comment: " + comment
     else:
         text = text + "**Parameters:** This component has no parameters"
     
