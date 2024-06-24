@@ -3,6 +3,8 @@
 import json 
 import ast
 import pandas as pd
+import numpy
+import componentHandler
 
 def getRunAsDF(runname):
     jsonFile = open(runname) 
@@ -57,12 +59,15 @@ def getComponents(element):
     componentsDict = ast.literal_eval(components) #converts string to dict
     componentsList = []
     elem = componentsDict.get('component').get('name')
-    componentsList.append(elem)
+    elemCleaned = componentHandler.cleanName(elem)
+    componentsList.append(elemCleaned)
     nextComponent = componentsDict.get('satisfactionOfRequiredInterfaces')
     nextComponentExists = True
     if nextComponent == {} or nextComponent == None: nextComponentExists = False
     while nextComponentExists == True:
-        componentsList.append(nextComponent.get('W').get('component').get('name'))
+        elem = nextComponent.get('W').get('component').get('name')
+        elemCleaned = componentHandler.cleanName(elem)
+        componentsList.append(elemCleaned)
         nextComponent = nextComponent.get('W').get('component').get('satisfactionOfRequiredInterfaces')
         if nextComponent == {} or nextComponent == None: nextComponentExists = False
     return componentsList
@@ -76,7 +81,13 @@ def getPerformanceValue(element):
 def getException(element):
     return element.get('exception')
 
+def getAllComponentSolutions(run):
+    solutions = run["components"].to_numpy()
+    return solutions
 
-run = getRunAsDF('runs/best_first_747_4h.json')
+
+#run = getRunAsDF('runs/best_first_747_4h.json')
+#comp = getAllComponentSolutions(run)
+#print(comp[0])
 #run = getRunAsDF('runs/gmfs_eval.json')
-print(run)
+#print(run)

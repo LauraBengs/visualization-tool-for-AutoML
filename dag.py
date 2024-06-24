@@ -1,5 +1,6 @@
 import searchSpaceHandler
-from dash import Dash, html, Input, Output, callback, State, dcc
+import runHandler
+from dash import Dash, html, Input, Output, callback, State, dcc, ctx
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 
@@ -56,30 +57,26 @@ for a in range(0, len(allComponentNames)):
             if type(requiredInterfaces) is list:
                 for elemA in providedInterfaces:
                     if elemA in requiredInterfaces and categories[a] != categories[b]:
-                        connections.append({'data': {'source': allComponentNames[a], 'target': allComponentNames[b]}})
+                        connections.append({'data': {'source': allComponentNames[a], 'target': allComponentNames[b], 'weight':1}})
                         temp.append(allComponentNames[b])
     possibleComponentPartner.append(temp)
 
 dataPoints = components + connections
 
 style = [
-    {'selector': 'node','style': {'content': 'data(label)'}},
-    {'selector': '.Kernel', 'style': { 'background-color': '#EC9F05'}},
-    {'selector': '.BaseSLC', 'style': { 'background-color': '#4A6C6F'}},
-    {'selector': '.MetaSLC', 'style': { 'background-color': '#A1C084'}},
-    {'selector': '.BaseMLC', 'style': { 'background-color': '#A63446'}},
-    {'selector': '.MetaMLC', 'style': { 'background-color': '#D89A9E'}}
+    {'selector': 'node','style': {'content': 'data(label)'}}
     ]
 
 app.layout = html.Div([
+    dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
+    html.Div(id='text'),
     cyto.Cytoscape(
-        id='components',
+        id='dag',
         layout={'name': 'preset'},
         style={'width': '100%', 'height': '600px'},
         elements=dataPoints,
         stylesheet=style
     ),
-    html.P(id='ClickedComponent'),
     dbc.Modal(
             [
                 dbc.ModalHeader(id="modal-header"),
@@ -100,7 +97,7 @@ def getInfosForModal(data):
     modalText = searchSpaceHandler.getComponentInfo(component)
     return modalHeader, modalText
      
-@callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('components', 'tapNodeData'), State("modal", "is_open"))
+@callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('dag', 'tapNodeData'), State("modal", "is_open"))
 def toggle_modal(data, is_open): 
     if data is not None:
         header, text = getInfosForModal(data)
@@ -108,6 +105,24 @@ def toggle_modal(data, is_open):
         modalText = dcc.Markdown(text)
         return not is_open, modalHeader, modalText
     return is_open, '', ''
+
+def showSearchrun(stylesheet):
+    run = runHandler.getRunAsDF('runs/gmfs_eval.json')
+    solutions = runHandler.getAllComponentSolutions(run)
+    for sol in solutions:
+        for elem in sol:
+            sel = "[label = \"" + elem + "\"]"
+            stylesheet.append({'selector': sel, 'style': {'background-color': '#FF4136'}})
+    return stylesheet
+        
+
+@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'))
+def displayClick(n, stylesheet):
+   if n is None or n == 0:
+       return "Not clicked", stylesheet
+   else:
+       newStyle = showSearchrun(stylesheet)
+       return f"Button was clicked {n} times", newStyle
 
 if __name__ == '__main__':
     app.run(debug=True)

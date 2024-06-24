@@ -8,6 +8,10 @@ def getComponentFullName(component):
 
 def getComponentName(component):
     fullName = getComponentFullName(component)
+    name = cleanName(fullName)
+    return name
+
+def cleanName(fullName):
     splitName = fullName.split(".")
     if splitName == []:
             raise Exception("Could not get component name due to an empty list")
