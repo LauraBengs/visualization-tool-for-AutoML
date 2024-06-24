@@ -1,6 +1,6 @@
 import json 
 import pandas as pd
-import componentHandler
+import handler.componentHandler as componentHandler
 import numpy
 import requests
 
