@@ -68,6 +68,13 @@ style = [
     ]
 
 app.layout = html.Div([
+    dbc.Label("Choose run:"),
+    dbc.RadioItems(id="runSelector", 
+                   options=[
+                       {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
+                       {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"}],
+                   inline=True,
+                   value= "best_first_747_4h.json"),
     dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
     html.Div(id='text'),
     cyto.Cytoscape(
@@ -106,8 +113,8 @@ def toggle_modal(data, is_open):
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
-def showSearchrun(stylesheet):
-    run = runHandler.getRunAsDF('runs/gmfs_eval.json')
+def showSearchrun(stylesheet, runname):
+    run = runHandler.getRunAsDF(runname)
     solutions = runHandler.getAllComponentSolutions(run)
     for sol in solutions:
         for elem in sol:
@@ -116,13 +123,16 @@ def showSearchrun(stylesheet):
     return stylesheet
         
 
-@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'))
-def displayClick(n, stylesheet):
-   if n is None or n == 0:
-       return "Not clicked", stylesheet
-   else:
-       newStyle = showSearchrun(stylesheet)
-       return f"Button was clicked {n} times", newStyle
+@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'), Input("runSelector", "value"))
+def displayClick(n, stylesheet, runname):
+    msg = "Click start to visualise run"
+    if "btnStart" == ctx.triggered_id:
+        msg = "This is the visualisation for " + runname
+        newStyle = showSearchrun(stylesheet, runname)
+        return msg, newStyle
+    return msg, style
+    
+ 
 
 if __name__ == '__main__':
     app.run(debug=True)
