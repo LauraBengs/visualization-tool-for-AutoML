@@ -4,7 +4,7 @@ import json
 import ast
 import pandas as pd
 import numpy
-import handler.componentHandler as componentHandler
+import componentHandler
 
 def getRunAsDF(runname):
     jsonFile = open(runname) 
@@ -85,9 +85,9 @@ def getAllComponentSolutions(run):
     solutions = run["components"].to_numpy()
     return solutions
 
-def getPerformances(run):
-    performances = run["performance"].to_numpy()
-    return performances
 
-run = getRunAsDF('runs/gmfs_eval.json')
-print(getPerformances(run))
+#run = getRunAsDF('runs/best_first_747_4h.json')
+#comp = getAllComponentSolutions(run)
+#print(comp[0])
+#run = getRunAsDF('runs/gmfs_eval.json')
+#print(run)

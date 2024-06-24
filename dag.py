@@ -1,5 +1,5 @@
-import handler.searchSpaceHandler as searchSpaceHandler
-import handler.runHandler as runHandler
+import searchSpaceHandler
+import runHandler
 from dash import Dash, html, Input, Output, callback, State, dcc, ctx
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
