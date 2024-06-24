@@ -9,7 +9,8 @@ AutoML is a promising area of research that is constantly gaining importance. Ne
 
 Dash
 - [Modal](https://dash-bootstrap-components.opensource.faculty.ai/docs/components/modal/)
-- [Layout](https://dash-bootstrap-components.opensource.faculty.ai/docs/components/modal/)
+- [Layout](https://dash-bootstrap-components.opensource.faculty.ai/docs/components/layout/)
+- [Cytospace](https://dash.plotly.com/cytoscape)
 
 Latex
 - [Colors](https://www.overleaf.com/learn/latex/Using_colors_in_LaTeX)
