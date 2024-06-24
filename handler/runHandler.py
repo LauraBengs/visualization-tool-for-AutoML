@@ -4,7 +4,7 @@ import json
 import ast
 import pandas as pd
 import numpy
-import componentHandler
+import handler.componentHandler as componentHandler
 
 def getRunAsDF(runname):
     jsonFile = open(runname) 
