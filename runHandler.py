@@ -85,9 +85,12 @@ def getAllComponentSolutions(run):
     solutions = run["components"].to_numpy()
     return solutions
 
+def getPerformances(run):
+    performances = run["performance"].to_numpy()
+    return performances
 
 #run = getRunAsDF('runs/best_first_747_4h.json')
 #comp = getAllComponentSolutions(run)
 #print(comp[0])
-#run = getRunAsDF('runs/gmfs_eval.json')
-#print(run)
+run = getRunAsDF('runs/gmfs_eval.json')
+print(getPerformances(run))

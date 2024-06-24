@@ -122,12 +122,23 @@ def toggle_modal(data, is_open):
 def showSearchrun(stylesheet, runname):
     run = runHandler.getRunAsDF(runname)
     solutions = runHandler.getAllComponentSolutions(run)
-    for sol in solutions:
-        for elem in sol:
+    performances = runHandler.getPerformances(run)
+    for s in range(0, len(solutions)):
+        solComponents = solutions[s]
+        solPerformance = performances[s]
+        if solPerformance == None:
+            color = "black"
+        else:
+            solPerformance = float(solPerformance)
+            if solPerformance <= 0.33: color = "yellow"
+            elif solPerformance <= 0.66: color = "orange"
+            else: color = "red"
+        
+        for elem in solComponents:
             node = "[label = \"" + elem + "\"]"
-            stylesheet.append({'selector': node, 'style': {'background-color': 'black'}})
-        for i in range(0, len(sol)-1):
-            edge = "#"+sol[i+1]+"-"+sol[i]
+            stylesheet.append({'selector': node, 'style': {'background-color': color}})
+        for i in range(0, len(solComponents)-1):
+            edge = "#"+solComponents[i+1]+"-"+solComponents[i]
             stylesheet.append({'selector': edge, 'style':{'line-color':'black'}})
             
     return stylesheet
