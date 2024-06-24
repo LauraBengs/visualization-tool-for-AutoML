@@ -7,15 +7,19 @@ AutoML is a promising area of research that is constantly gaining importance. Ne
 
 [Tasks and ToDos (Github Project)](https://github.com/users/LauraBengs/projects/1/views/1)
 
+Dash
+- [Modal](https://dash-bootstrap-components.opensource.faculty.ai/docs/components/modal/)
+- [Layout](https://dash-bootstrap-components.opensource.faculty.ai/docs/components/modal/)
+
 Latex
-[Colors](https://www.overleaf.com/learn/latex/Using_colors_in_LaTeX)
-[Tables](https://www.overleaf.com/learn/latex/Tables)
-[Pifont symbols](https://tex.stackexchange.com/questions/133264/circled-footnote-symbols-with-pifont-showing-arrows-instead-of-circled-numbers)
+- [Colors](https://www.overleaf.com/learn/latex/Using_colors_in_LaTeX)
+- [Tables](https://www.overleaf.com/learn/latex/Tables)
+- [Pifont symbols](https://tex.stackexchange.com/questions/133264/circled-footnote-symbols-with-pifont-showing-arrows-instead-of-circled-numbers)
 
 Language
-[DeepL](https://tex.stackexchange.com/questions/133264/circled-footnote-symbols-with-pifont-showing-arrows-instead-of-circled-numbers)
-[Find synonyms](https://www.thesaurus.com/browse/furthermore)
-[Sentence Starter](https://www.grammarly.com/blog/sentence-starters/)
+- [DeepL](https://tex.stackexchange.com/questions/133264/circled-footnote-symbols-with-pifont-showing-arrows-instead-of-circled-numbers)
+- [Find synonyms](https://www.thesaurus.com/browse/furthermore)
+- [Sentence Starter](https://www.grammarly.com/blog/sentence-starters/)
 
 Further Links
-[Barrierfree Design](https://barrierefreies.design/barrierefreiheit-interaktiv-testen/farbenfehlsichtigkeit-simulieren)
+- [Barrierfree Design](https://barrierefreies.design/barrierefreiheit-interaktiv-testen/farbenfehlsichtigkeit-simulieren)
