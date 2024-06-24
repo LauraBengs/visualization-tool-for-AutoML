@@ -57,7 +57,7 @@ for a in range(0, len(allComponentNames)):
             if type(requiredInterfaces) is list:
                 for elemA in providedInterfaces:
                     if elemA in requiredInterfaces and categories[a] != categories[b]:
-                        connections.append({'data': {'source': allComponentNames[a], 'target': allComponentNames[b], 'weight':1}})
+                        connections.append({'data': {'id':(allComponentNames[a]+"-"+allComponentNames[b]), 'source': allComponentNames[a], 'target': allComponentNames[b], 'weight':1}})
                         temp.append(allComponentNames[b])
     possibleComponentPartner.append(temp)
 
@@ -124,8 +124,12 @@ def showSearchrun(stylesheet, runname):
     solutions = runHandler.getAllComponentSolutions(run)
     for sol in solutions:
         for elem in sol:
-            sel = "[label = \"" + elem + "\"]"
-            stylesheet.append({'selector': sel, 'style': {'background-color': '#FF4136'}})
+            node = "[label = \"" + elem + "\"]"
+            stylesheet.append({'selector': node, 'style': {'background-color': 'black'}})
+        for i in range(0, len(sol)-1):
+            edge = "#"+sol[i+1]+"-"+sol[i]
+            stylesheet.append({'selector': edge, 'style':{'line-color':'black'}})
+            
     return stylesheet
         
 
