@@ -68,22 +68,28 @@ style = [
     ]
 
 app.layout = html.Div([
-    dbc.Label("Choose run:"),
-    dbc.RadioItems(id="runSelector", 
+    dbc.Row([
+        dbc.Col(html.Div([
+            dbc.Label("Choose run:"),
+            dbc.RadioItems(id="runSelector", 
                    options=[
                        {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
                        {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"}],
                    inline=True,
                    value= "best_first_747_4h.json"),
-    dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
-    html.Div(id='text'),
-    cyto.Cytoscape(
-        id='dag',
-        layout={'name': 'preset'},
-        style={'width': '100%', 'height': '600px'},
-        elements=dataPoints,
-        stylesheet=style
-    ),
+            dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
+            html.Div(id='text')
+            ], style={'backgroundColor':'#999999'})),
+        
+        dbc.Col(cyto.Cytoscape(
+            id='dag',
+            layout={'name': 'preset'},
+            style={'width': '100%', 'height': '600px'},
+            elements=dataPoints,
+            stylesheet=style
+        ), width=8)    
+    ]),
+    
     dbc.Modal(
             [
                 dbc.ModalHeader(id="modal-header"),
