@@ -21,6 +21,8 @@ def getRunAsDF(runname):
         elemTimestamp = getTimestamp(element)
         timestamps.append(elemTimestamp)
         elemComponents = getComponents(element)
+        #print(elemComponents)
+        #print("---------------")
         components.append(elemComponents)
         elemPerformance = getPerformanceValue(element)
         performance.append(elemPerformance)
@@ -55,21 +57,26 @@ def printElement(element):
     print("exception:", exception)
 
 def getComponents(element):
+    componentsList = []
+    label = ''
+    if element == None: return componentsList
     components = element.get('component_instance')
     componentsDict = ast.literal_eval(components) #converts string to dict
-    componentsList = []
     elem = componentsDict.get('component').get('name')
+    if elem == None or elem == {}: return componentsList
     elemCleaned = componentHandler.cleanName(elem)
     componentsList.append(elemCleaned)
     nextComponent = componentsDict.get('satisfactionOfRequiredInterfaces')
     nextComponentExists = True
     if nextComponent == {} or nextComponent == None: nextComponentExists = False
+    else: label = str(nextComponent)[2] #info if we need W or B
     while nextComponentExists == True:
-        elem = nextComponent.get('W').get('component').get('name')
+        elem = nextComponent.get(label).get('component').get('name')
         elemCleaned = componentHandler.cleanName(elem)
         componentsList.append(elemCleaned)
-        nextComponent = nextComponent.get('W').get('component').get('satisfactionOfRequiredInterfaces')
+        nextComponent = nextComponent.get(label).get('satisfactionOfRequiredInterfaces')
         if nextComponent == {} or nextComponent == None: nextComponentExists = False
+        else: label = str(nextComponent)[2]
     return componentsList
 
 def getTimestamp(element):
@@ -90,7 +97,7 @@ def getPerformances(run):
     return performances
 
 #run = getRunAsDF('runs/best_first_747_4h.json')
+run = getRunAsDF('runs/gmfs_eval.json')
 #comp = getAllComponentSolutions(run)
-#print(comp[0])
-#run = getRunAsDF('runs/gmfs_eval.json')
+#print(comp)
 #print(getPerformances(run))
