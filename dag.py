@@ -9,6 +9,7 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 allComponentNames = searchSpaceHandler.getAllComponentNames(searchspace)
+allComponentFullNames = searchSpaceHandler.getAllComponentfullNames(searchspace)
 categories = searchSpaceHandler.getAllCategories(searchspace)
 
 x = 0
@@ -56,7 +57,7 @@ for a in range(0, len(allComponentNames)):
             requiredInterfaces = searchspace.loc[searchspace['name'] == allComponentNames[b]].iat[0,3]
             if type(requiredInterfaces) is list:
                 for elemA in providedInterfaces:
-                    if elemA in requiredInterfaces and categories[a] != categories[b]:
+                    if (elemA in requiredInterfaces or allComponentFullNames[a] in requiredInterfaces) and categories[a] != categories[b]:
                         connections.append({'data': {'id':(allComponentNames[a]+"-"+allComponentNames[b]), 'source': allComponentNames[a], 'target': allComponentNames[b], 'weight':1}})
                         temp.append(allComponentNames[b])
     possibleComponentPartner.append(temp)

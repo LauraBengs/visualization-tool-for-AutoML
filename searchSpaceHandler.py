@@ -63,6 +63,9 @@ def addData(link, category, name, fullName, requiredInterface, providedInterface
 def getAllComponentNames(searchspace):
     return searchspace["name"].to_numpy()
 
+def getAllComponentfullNames(searchspace):
+    return searchspace["fullName"].to_numpy()
+
 def getAllCategories(searchspace):
     return searchspace["category"].to_numpy()
 
