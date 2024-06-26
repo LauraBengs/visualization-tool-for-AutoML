@@ -92,5 +92,5 @@ def getPerformances(run):
 #run = getRunAsDF('runs/best_first_747_4h.json')
 #comp = getAllComponentSolutions(run)
 #print(comp[0])
-run = getRunAsDF('runs/gmfs_eval.json')
-print(getPerformances(run))
+#run = getRunAsDF('runs/gmfs_eval.json')
+#print(getPerformances(run))

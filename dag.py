@@ -64,7 +64,8 @@ for a in range(0, len(allComponentNames)):
 dataPoints = components + connections
 
 style = [
-    {'selector': 'node','style': {'content': 'data(label)'}}
+    {'selector': 'node','style': {'content': 'data(label)', 'opacity':'0'}},
+    {'selector': 'edge','style': {'opacity':'0'}}
     ]
 
 app.layout = html.Div([
@@ -136,10 +137,10 @@ def showSearchrun(stylesheet, runname):
         
         for elem in solComponents:
             node = "[label = \"" + elem + "\"]"
-            stylesheet.append({'selector': node, 'style': {'background-color': color}})
+            stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':'1'}})
         for i in range(0, len(solComponents)-1):
             edge = "#"+solComponents[i+1]+"-"+solComponents[i]
-            stylesheet.append({'selector': edge, 'style':{'line-color':'black'}})
+            stylesheet.append({'selector': edge, 'style':{'line-color':'black', 'opacity':'1'}})
             
     return stylesheet
         
