@@ -12,6 +12,8 @@ allComponentNames = searchSpaceHandler.getAllComponentNames(searchspace)
 allComponentFullNames = searchSpaceHandler.getAllComponentfullNames(searchspace)
 categories = searchSpaceHandler.getAllCategories(searchspace)
 
+edges = {}
+
 x = 0
 y = 0
 yK = 0
@@ -78,7 +80,7 @@ app.layout = html.Div([
                        {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
                        {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"}],
                    inline=True,
-                   value= "best_first_747_4h.json"),
+                   value= "runs/best_first_747_4h.json"),
             dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
             html.Div(id='text')
             ], style={'backgroundColor':'#999999'})),
@@ -88,7 +90,8 @@ app.layout = html.Div([
             layout={'name': 'preset'},
             style={'width': '100%', 'height': '600px'},
             elements=dataPoints,
-            stylesheet=style
+            stylesheet=style,
+            responsive=True
         ), width=8)    
     ]),
     
@@ -128,8 +131,10 @@ def showSearchrun(stylesheet, runname):
     for s in range(0, len(solutions)):
         solComponents = solutions[s]
         solPerformance = performances[s]
+        color = ""
+        opacity = "1"
         if solPerformance == None:
-            color = "black"
+            color = ""
         else:
             solPerformance = float(solPerformance)
             if solPerformance <= 0.33: color = "yellow"
@@ -138,10 +143,17 @@ def showSearchrun(stylesheet, runname):
         
         for elem in solComponents:
             node = "[label = \"" + elem + "\"]"
-            stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':'1'}})
+            stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})
         for i in range(0, len(solComponents)-1):
             edge = "#"+solComponents[i+1]+"-"+solComponents[i]
-            stylesheet.append({'selector': edge, 'style':{'line-color':'black', 'opacity':'1'}})
+            global edges
+            currentWeight = edges.get(edge)
+            if currentWeight == None:
+                edges[edge] = 1
+            else:
+                newWeight = currentWeight +2 
+                edges.update({edge: newWeight})
+            stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge])}})
             
     return stylesheet
         
@@ -150,6 +162,8 @@ def showSearchrun(stylesheet, runname):
 def displayClick(n, stylesheet, runname):
     msg = "Click start to visualise run"
     if "btnStart" == ctx.triggered_id:
+        global edges
+        edges = {}
         msg = "This is the visualisation for " + runname
         newStyle = showSearchrun(stylesheet, runname)
         return msg, newStyle
