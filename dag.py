@@ -150,10 +150,14 @@ def showSearchrun(stylesheet, runname):
             currentWeight = edges.get(edge)
             if currentWeight == None:
                 edges[edge] = 1
+                stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge])}})
             else:
-                newWeight = currentWeight +2 
-                edges.update({edge: newWeight})
-            stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge])}})
+                newWeight = currentWeight +2
+                if newWeight >= 20:
+                     stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width':'20', 'line-color': 'black'}})
+                else:
+                    edges.update({edge: newWeight})
+                    stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge])}})
             
     return stylesheet
         
