@@ -13,6 +13,7 @@ allComponentFullNames = searchSpaceHandler.getAllComponentfullNames(searchspace)
 categories = searchSpaceHandler.getAllCategories(searchspace)
 
 edges = {}
+nodes = {}
 
 x = 0
 y = 0
@@ -28,23 +29,23 @@ for i in range(0, len(allComponentNames)):
     if categories[i] == "Kernel": 
         x = 0
         y = yK
-        yK += 100
+        yK += 60
     elif categories[i] == "BaseSLC": 
         x = 300
         y = yBS
-        yBS += 100
+        yBS += 60
     elif categories[i] == "MetaSLC": 
         x = 600
         y = yMS
-        yMS += 100
+        yMS += 60
     elif categories[i] == "BaseMLC": 
         x = 900
         y = yBM
-        yBM += 100
+        yBM += 60
     elif categories[i] == "MetaMLC": 
         x = 1200
         y = yMM
-        yMM += 100
+        yMM += 60
     
     components.append({'data': {'id': allComponentNames[i], 'label': allComponentNames[i]}, 'position': {'x': x, 'y': y}, 'classes': categories[i]})
 
@@ -75,19 +76,26 @@ app.layout = html.Div([
     dbc.Row([
         dbc.Col([
             html.Div([
-                html.H3("Choose run"),
+                html.H3("Run configurator"),
+                html.H4("Choose run"),
                 dbc.RadioItems(id="runSelector", 
                     options=[
                         {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
                         {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"}],
-                    inline=True,
                     value= "runs/best_first_747_4h.json"),
+                html.H4("Restrictions"),
+                dbc.RadioItems(id="runRestrictions", 
+                    options=[
+                        {"label": "Show everything", "value": "all"},
+                        {"label": "Performance >= 0.33", "value": "0.33"},
+                        {"label": "Performance > 0.66", "value": "0.66"}],
+                    value= "all"),
                 dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
                 html.Div(id='text')
             ], style={'backgroundColor':'#999999'}),
                 
             html.Div([
-                html.H3("Help"),
+                html.H3("❔ Help/ Explanation"),
                 html.H4("Performance"),
                 html.Ul([
                     html.Li("Given by the colour of a node"),
@@ -112,6 +120,10 @@ app.layout = html.Div([
             responsive=True
         ), width=8)    
     ]),
+    
+    dbc.Row(html.Div([
+            html.H1("Test")
+        ], style={'backgroundColor':'#999999'})),
     
     dbc.Modal(
             [
@@ -142,7 +154,7 @@ def toggle_modal(data, is_open):
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
-def showSearchrun(stylesheet, runname):
+def showSearchrun(stylesheet, runname, restrictions):
     run = runHandler.getRunAsDF(runname)
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
@@ -150,48 +162,64 @@ def showSearchrun(stylesheet, runname):
         solComponents = solutions[s]
         solPerformance = performances[s]
         color = ""
-        opacity = "1"
+        opacity = "0"
         if solPerformance == None:
             color = ""
+            if restrictions == "all":
+                opacity = "1"
         else:
             solPerformance = float(solPerformance)
             if solPerformance <= 0.33: color = "yellow"
             elif solPerformance <= 0.66: color = "orange"
             else: color = "red"
+            
+            if (restrictions == "all") or (restrictions == "0.66" and solPerformance > 0.66) or (restrictions == "0.33" and solPerformance >= 0.33):
+                opacity = "1"
         
         for elem in solComponents:
-            node = "[label = \"" + elem + "\"]"
-            stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})
-        for i in range(0, len(solComponents)-1):
-            edge = "#"+solComponents[i+1]+"-"+solComponents[i]
-            global edges
-            currentWeight = edges.get(edge)
-            if currentWeight == None:
-                edges[edge] = 1
-                stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge])}})
-            else:
-                newWeight = currentWeight +2
-                if newWeight >= 20:
-                     stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width':'20', 'line-color': 'black'}})
-                else:
-                    edges.update({edge: newWeight})
+            global nodes
+            currentColor = nodes.get(elem)
+            if currentColor == None:
+                nodes[elem] = color
+                node = "[label = \"" + elem + "\"]"
+                stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})
+            elif currentColor != color and currentColor != "red":
+                if color == "red" or color == "orange":
+                    nodes.update({elem: color})
+                    node = "[label = \"" + elem + "\"]"
+                    stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})                    
+            
+        if opacity != "0":
+            for i in range(0, len(solComponents)-1):
+                edge = "#"+solComponents[i+1]+"-"+solComponents[i]
+                global edges
+                currentWeight = edges.get(edge)
+                if currentWeight == None:
+                    edges[edge] = 1
                     stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge])}})
+                else:
+                    newWeight = currentWeight +2
+                    if newWeight >= 20:
+                        stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width':'20', 'line-color': 'black'}})
+                    else:
+                        edges.update({edge: newWeight})
+                        stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge])}})
             
     return stylesheet
         
 
-@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'), Input("runSelector", "value"))
-def displayClick(n, stylesheet, runname):
+@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'), Input("runSelector", "value"), Input("runRestrictions", "value"))
+def displayClick(n, stylesheet, runname, restrictions):
     msg = "Click start to visualise run"
     if "btnStart" == ctx.triggered_id:
         global edges
+        global nodes
         edges = {}
-        msg = "This is the visualisation for " + runname
-        newStyle = showSearchrun(stylesheet, runname)
+        nodes = {}
+        msg = "This is the visualisation for \"" + runname +"\" with restrictions \"" + restrictions +"\""
+        newStyle = showSearchrun(stylesheet, runname, restrictions)
         return msg, newStyle
     return msg, style
     
- 
-
 if __name__ == '__main__':
     app.run(debug=True)
