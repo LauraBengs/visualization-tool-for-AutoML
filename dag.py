@@ -91,7 +91,8 @@ app.layout = html.Div([
                         {"label": "Performance >= 0.66", "value": "0.66"},
                         {"label": "Performance > 0.9", "value": "0.9"}],
                     value= "all"),
-                dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
+                html.Div([dbc.Button('Show graph', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px'})]),
+                          #dbc.Button('Start visualisation', id='btnVis', n_clicks=0, color="secondary")]),
                 html.Div(id='text')
             ], style={'backgroundColor':'#999999'}),
                 
@@ -108,7 +109,7 @@ app.layout = html.Div([
                 html.H4("Edge thickness"),
                 html.Ul([
                     html.Li("Corresponds to how often a connection has been used in a solution"),
-                    html.Li("Black: connections has been used more than 10 times")]),
+                    html.Li("Black: connection has been used more than 10 times")]),
                 
             ], style={'backgroundColor':'#666666'})]),
         
@@ -122,10 +123,6 @@ app.layout = html.Div([
             responsive=True
         ), width=8)    
     ]),
-    
-    dbc.Row(html.Div([
-            html.H1("Test")
-        ], style={'backgroundColor':'#999999'})),
     
     dbc.Modal(
             [
@@ -211,17 +208,18 @@ def showSearchrun(stylesheet, runname, restrictions):
         
 
 @callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'), Input("runSelector", "value"), Input("runRestrictions", "value"))
-def displayClick(n, stylesheet, runname, restrictions):
-    msg = "Click start to visualise run"
+def dag(n, stylesheet, runname, restrictions):
+    msg = "Click \"Show graph\" to visualise run"
     if "btnStart" == ctx.triggered_id:
         global edges
         global nodes
         edges = {}
         nodes = {}
-        msg = "This is the visualisation for \"" + runname +"\" with restrictions \"" + restrictions +"\""
+        if restrictions == "all": msg = "This is the dag for \"" + runname +"\" with no restrictions"
+        else: msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\""
         newStyle = showSearchrun(stylesheet, runname, restrictions)
         return msg, newStyle
     return msg, style
-    
+
 if __name__ == '__main__':
     app.run(debug=True)
