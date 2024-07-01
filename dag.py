@@ -101,7 +101,8 @@ app.layout = html.Div([
                     html.Li("Given by the colour of a node"),
                     html.Li("Yellow: Performance <= 0.33"),
                     html.Li("Orange: Performance <= 0.66"),
-                    html.Li("Red: Performance > 0.66"),
+                    html.Li("Red: Performance <= 0.66"),
+                    html.Li("Darkred: Performance > 0.9"),
                     html.Li("Grey: No performance value available")]),
                 html.H4("Edge thickness"),
                 html.Ul([
@@ -171,7 +172,8 @@ def showSearchrun(stylesheet, runname, restrictions):
             solPerformance = float(solPerformance)
             if solPerformance <= 0.33: color = "yellow"
             elif solPerformance <= 0.66: color = "orange"
-            else: color = "red"
+            elif solPerformance <= 0.9: color = "red"
+            else: color = "darkred"
             
             if (restrictions == "all") or (restrictions == "0.66" and solPerformance > 0.66) or (restrictions == "0.33" and solPerformance >= 0.33):
                 opacity = "1"
@@ -183,7 +185,7 @@ def showSearchrun(stylesheet, runname, restrictions):
                 nodes[elem] = color
                 node = "[label = \"" + elem + "\"]"
                 stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})
-            elif (currentColor != color and currentColor != "red") and (color == "red" or color == "orange" or (color == "yellow" and currentColor == "")):
+            elif (currentColor != color and currentColor != "darkred") and (color == "darkred" or color == "red" or (color == "orange" and currentColor != "red") or (color == "yellow" and currentColor == "")):
                 nodes.update({elem: color})
                 node = "[label = \"" + elem + "\"]"
                 stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})                    
