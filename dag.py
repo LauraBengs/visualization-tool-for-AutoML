@@ -183,11 +183,10 @@ def showSearchrun(stylesheet, runname, restrictions):
                 nodes[elem] = color
                 node = "[label = \"" + elem + "\"]"
                 stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})
-            elif currentColor != color and currentColor != "red":
-                if color == "red" or color == "orange":
-                    nodes.update({elem: color})
-                    node = "[label = \"" + elem + "\"]"
-                    stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})                    
+            elif (currentColor != color and currentColor != "red") and (color == "red" or color == "orange" or (color == "yellow" and currentColor == "")):
+                nodes.update({elem: color})
+                node = "[label = \"" + elem + "\"]"
+                stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})                    
             
         if opacity != "0":
             for i in range(0, len(solComponents)-1):
