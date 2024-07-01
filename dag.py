@@ -73,17 +73,35 @@ style = [
 
 app.layout = html.Div([
     dbc.Row([
-        dbc.Col(html.Div([
-            dbc.Label("Choose run:"),
-            dbc.RadioItems(id="runSelector", 
-                   options=[
-                       {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
-                       {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"}],
-                   inline=True,
-                   value= "runs/best_first_747_4h.json"),
-            dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
-            html.Div(id='text')
-            ], style={'backgroundColor':'#999999'})),
+        dbc.Col([
+            html.Div([
+                html.H3("Choose run"),
+                dbc.RadioItems(id="runSelector", 
+                    options=[
+                        {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
+                        {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"}],
+                    inline=True,
+                    value= "runs/best_first_747_4h.json"),
+                dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
+                html.Div(id='text')
+            ], style={'backgroundColor':'#999999'}),
+                
+            html.Div([
+                html.H3("Help"),
+                html.H4("Performance"),
+                html.Ul([
+                    html.Li("Given by the colour of a node"),
+                    html.Li("Yellow: Performance <= 0.33"),
+                    html.Li("Orange: Performance <= 0.66"),
+                    html.Li("Red: Performance > 0.66"),
+                    html.Li("Grey: No performance value available")]),
+                html.H4("Edge thickness"),
+                html.Ul([
+                    html.Li("Corresponds to how often a connection has been used in a solution"),
+                    html.Li("Black: connections has been used more than 10 times")]),
+                
+            ], style={'backgroundColor':'#666666'})]),
+        
         
         dbc.Col(cyto.Cytoscape(
             id='dag',
