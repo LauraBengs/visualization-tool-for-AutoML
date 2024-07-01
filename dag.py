@@ -88,7 +88,8 @@ app.layout = html.Div([
                     options=[
                         {"label": "Show everything", "value": "all"},
                         {"label": "Performance >= 0.33", "value": "0.33"},
-                        {"label": "Performance > 0.66", "value": "0.66"}],
+                        {"label": "Performance >= 0.66", "value": "0.66"},
+                        {"label": "Performance > 0.9", "value": "0.9"}],
                     value= "all"),
                 dbc.Button('Start', id='btnStart', n_clicks=0, color="secondary"),
                 html.Div(id='text')
@@ -175,7 +176,7 @@ def showSearchrun(stylesheet, runname, restrictions):
             elif solPerformance <= 0.9: color = "red"
             else: color = "darkred"
             
-            if (restrictions == "all") or (restrictions == "0.66" and solPerformance > 0.66) or (restrictions == "0.33" and solPerformance >= 0.33):
+            if (restrictions == "all") or (restrictions == "0.66" and solPerformance >= 0.66) or (restrictions == "0.33" and solPerformance >= 0.33) or (restrictions == "0.9" and solPerformance > 0.9):
                 opacity = "1"
         
         for elem in solComponents:
