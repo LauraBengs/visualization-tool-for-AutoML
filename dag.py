@@ -77,52 +77,39 @@ app.layout = html.Div([
         dbc.Col([
             html.Div([
                 html.H3("Run configurator"),
-                html.H4("Choose run"),
-                dbc.RadioItems(id="runSelector", 
-                    options=[
-                        {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
-                        {"label": "bohb_eval_407", "value": "runs/bohb_eval_407.json"},
-                        {"label": "bohb_eval_409", "value": "runs/bohb_eval_409.json"},
-                        {"label": "ggp_eval_407", "value": "runs/ggp_eval_407.json"},
-                        {"label": "ggp_eval_409", "value": "runs/ggp_eval_409.json"},
-                        {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"},
-                        {"label": "gmfs_eval_407", "value": "runs/gmfs_eval_407.json"},
-                        {"label": "gmfs_eval_409", "value": "runs/gmfs_eval_409.json"},
-                        {"label": "hblike_eval_786", "value": "runs/hblike_eval_786.json"},
-                        {"label": "hblike_eval_811", "value": "runs/hblike_eval_811.json"},
-                        {"label": "random_eval_138", "value": "runs/random_eval_138.json"},
-                        {"label": "random_eval_151", "value": "runs/random_eval_151.json"}
-                        ],
-                    value= "runs/best_first_747_4h.json"),
-                html.H4("Restrictions"),
-                dbc.RadioItems(id="runRestrictions", 
-                    options=[
-                        {"label": "Show everything", "value": "all"},
-                        {"label": "Performance >= 0.33", "value": "0.33"},
-                        {"label": "Performance >= 0.66", "value": "0.66"},
-                        {"label": "Performance > 0.9", "value": "0.9"}],
-                    value= "all"),
-                html.Div([dbc.Button('Show graph', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px'})]),
+                dbc.Row([
+                dbc.Col([
+                    html.Div([html.H4("Choose run"),
+                        dbc.RadioItems(id="runSelector", 
+                            options=[
+                                {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
+                                {"label": "bohb_eval_407", "value": "runs/bohb_eval_407.json"},
+                                {"label": "bohb_eval_409", "value": "runs/bohb_eval_409.json"},
+                                {"label": "ggp_eval_407", "value": "runs/ggp_eval_407.json"},
+                                {"label": "ggp_eval_409", "value": "runs/ggp_eval_409.json"},
+                                {"label": "gmfs_eval", "value": "runs/gmfs_eval.json"},
+                                {"label": "gmfs_eval_407", "value": "runs/gmfs_eval_407.json"},
+                                {"label": "gmfs_eval_409", "value": "runs/gmfs_eval_409.json"},
+                                {"label": "hblike_eval_786", "value": "runs/hblike_eval_786.json"},
+                                {"label": "hblike_eval_811", "value": "runs/hblike_eval_811.json"},
+                                {"label": "random_eval_138", "value": "runs/random_eval_138.json"},
+                                {"label": "random_eval_151", "value": "runs/random_eval_151.json"}
+                                ],
+                            value= "runs/best_first_747_4h.json")])]),
+                dbc.Col([
+                    html.Div([html.H4("Restrictions"),
+                        dbc.RadioItems(id="runRestrictions", 
+                            options=[
+                                {"label": "Show everything", "value": "all"},
+                                {"label": "Performance >= 0.33", "value": "0.33"},
+                                {"label": "Performance >= 0.66", "value": "0.66"},
+                                {"label": "Performance > 0.9", "value": "0.9"}],
+                            value= "all")])])]),
+                html.Div([dbc.Button('Show graph', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '90%'})]),
                           #dbc.Button('Start visualisation', id='btnVis', n_clicks=0, color="secondary")]),
                 html.Div(id='text')
             ], style={'backgroundColor':'#999999'}),
-                
-            html.Div([
-                html.H3("❔ Help/ Explanation"),
-                html.H4("Performance"),
-                html.Ul([
-                    html.Li("Given by the colour of a node"),
-                    html.Li("Yellow: Performance <= 0.33"),
-                    html.Li("Orange: Performance <= 0.66"),
-                    html.Li("Red: Performance <= 0.66"),
-                    html.Li("Darkred: Performance > 0.9"),
-                    html.Li("Grey: No performance value available")]),
-                html.H4("Edge thickness"),
-                html.Ul([
-                    html.Li("Corresponds to how often a connection has been used in a solution"),
-                    html.Li("Black: connection has been used more than 10 times")]),
-                
-            ], style={'backgroundColor':'#666666'})]),
+        ]),
         
         
         dbc.Col(cyto.Cytoscape(
@@ -132,7 +119,9 @@ app.layout = html.Div([
             elements=dataPoints,
             stylesheet=style,
             responsive=True
-        ), width=8)    
+        ), width=7),
+        
+        dbc.Col(dbc.Button('?', id='btnHelp', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width':'40px'}), width=1)    
     ]),
     
     dbc.Modal(
@@ -155,12 +144,18 @@ def getInfosForModal(data):
     modalText = searchSpaceHandler.getComponentInfo(component)
     return modalHeader, modalText
      
-@callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('dag', 'tapNodeData'), State("modal", "is_open"))
-def toggle_modal(data, is_open): 
+@callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('btnHelp', 'n_clicks'), Input('dag', 'tapNodeData'), State("modal", "is_open"))
+def toggle_modal(n, data, is_open): 
     if data is not None:
         header, text = getInfosForModal(data)
         modalHeader = dcc.Markdown("#### " + header)
         modalText = dcc.Markdown(text)
+        return not is_open, modalHeader, modalText
+    elif "btnHelp" == ctx.triggered_id:
+        modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
+        performance = "##### Performance \n - Given by the colour of a node \n - Yellow: Performance <= 0.33 \n - Orange: Performance <= 0.66 \n - Red: Performance <= 0.66 \n - Darkred: Performance > 0.9 \n - Grey: No performance value available \n"
+        edge = "##### Edge thickness \n - Corresponds to how often a connection has been used in a solution \n - Black: connection has been used more than 10 times"
+        modalText = dcc.Markdown(performance + edge)
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
@@ -231,6 +226,7 @@ def dag(n, stylesheet, runname, restrictions):
         newStyle = showSearchrun(stylesheet, runname, restrictions)
         return msg, newStyle
     return msg, style
+
 
 if __name__ == '__main__':
     app.run(debug=True)
