@@ -111,7 +111,6 @@ app.layout = html.Div([
             ], style={'backgroundColor':'#999999'}),
         ]),
         
-        
         dbc.Col(cyto.Cytoscape(
             id='dag',
             layout={'name': 'preset'},
@@ -146,16 +145,16 @@ def getInfosForModal(data):
      
 @callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('btnHelp', 'n_clicks'), Input('dag', 'tapNodeData'), State("modal", "is_open"))
 def toggle_modal(n, data, is_open): 
-    if data is not None:
-        header, text = getInfosForModal(data)
-        modalHeader = dcc.Markdown("#### " + header)
-        modalText = dcc.Markdown(text)
-        return not is_open, modalHeader, modalText
-    elif "btnHelp" == ctx.triggered_id:
+    if "btnHelp" == ctx.triggered_id:
         modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
         performance = "##### Performance \n - Given by the colour of a node \n - Yellow: Performance <= 0.33 \n - Orange: Performance <= 0.66 \n - Red: Performance <= 0.66 \n - Darkred: Performance > 0.9 \n - Grey: No performance value available \n"
         edge = "##### Edge thickness \n - Corresponds to how often a connection has been used in a solution \n - Black: connection has been used more than 10 times"
         modalText = dcc.Markdown(performance + edge)
+        return not is_open, modalHeader, modalText
+    elif data is not None:
+        header, text = getInfosForModal(data)
+        modalHeader = dcc.Markdown("#### " + header)
+        modalText = dcc.Markdown(text)
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
