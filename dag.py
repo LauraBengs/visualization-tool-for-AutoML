@@ -76,7 +76,7 @@ app.layout = html.Div([
     dbc.Row([
         dbc.Col([
             html.Div([
-                html.H3("Run configurator"),
+                html.H3("Visualisation configurator"),
                 dbc.Row([
                 dbc.Col([
                     html.Div([html.H4("Choose run"),
@@ -148,7 +148,7 @@ def toggle_modal(n, data, is_open):
     if "btnHelp" == ctx.triggered_id:
         modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
         performance = "##### Performance \n - Given by the colour of a node \n - Yellow: Performance <= 0.33 \n - Orange: Performance <= 0.66 \n - Red: Performance <= 0.66 \n - Darkred: Performance > 0.9 \n - Grey: No performance value available \n"
-        edge = "##### Edge thickness \n - Corresponds to how often a connection has been used in a solution \n - Black: connection has been used more than 10 times"
+        edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times"
         modalText = dcc.Markdown(performance + edge)
         return not is_open, modalHeader, modalText
     elif data is not None:
@@ -220,8 +220,10 @@ def dag(n, stylesheet, runname, restrictions):
         global nodes
         edges = {}
         nodes = {}
-        if restrictions == "all": msg = "This is the dag for \"" + runname +"\" with no restrictions"
-        else: msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\""
+        if restrictions == "all": 
+            msg = "This is the dag for \"" + runname +"\" with no restrictions"
+        else: 
+            msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\""
         newStyle = showSearchrun(stylesheet, runname, restrictions)
         return msg, newStyle
     return msg, style

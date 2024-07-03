@@ -61,7 +61,7 @@ def getComponents(element):
     label = ''
     if element == None: return componentsList
     components = element.get('component_instance')
-    componentsDict = ast.literal_eval(components) #converts string to dict
+    componentsDict = ast.literal_eval(components.replace("null", "None")) #converts string to dict
     elem = componentsDict.get('component').get('name')
     if elem == None or elem == {}: return componentsList
     elemCleaned = componentHandler.cleanName(elem)
@@ -97,7 +97,7 @@ def getPerformances(run):
     return performances
 
 #run = getRunAsDF('runs/best_first_747_4h.json')
-run = getRunAsDF('runs/gmfs_eval.json')
+#run = getRunAsDF('runs/bohb_eval_407.json')
 #comp = getAllComponentSolutions(run)
 #print(comp)
 #print(getPerformances(run))
