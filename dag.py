@@ -72,6 +72,8 @@ style = [
     {'selector': 'edge','style': {'opacity':'0'}}
     ]
 
+max = 0
+
 app.layout = html.Div([
     dbc.Row([
         dbc.Col([
@@ -105,26 +107,28 @@ app.layout = html.Div([
                                 {"label": "Performance >= 0.66", "value": "0.66"},
                                 {"label": "Performance > 0.9", "value": "0.9"}],
                             value= "all")])])]),
-                html.H4("Timesteps"),
-                dcc.Slider(0, 100, 2, 
-                           value=100,
-                           marks=None,
-                           tooltip={"placement": "bottom", "always_visible": True},
-                           id="timesteps-slider"),
-                html.Div([dbc.Button('Show graph', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '90%'})]),
-                          #dbc.Button('Start visualisation', id='btnVis', n_clicks=0, color="secondary")]),
+                html.H4("Comment"),
                 html.Div(id='text')
             ], style={'backgroundColor':'#999999'}),
         ]),
         
-        dbc.Col(cyto.Cytoscape(
-            id='dag',
-            layout={'name': 'preset'},
-            style={'width': '100%', 'height': '600px'},
-            elements=dataPoints,
-            stylesheet=style,
-            responsive=True
-        ), width=7),
+        dbc.Col(html.Div([
+            dbc.Row([
+                dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
+                dbc.Col(html.Div(dcc.Slider(0, max, 1, 
+                           value=0,
+                           marks=None,
+                           tooltip={"placement": "bottom", "always_visible": True},
+                           id="slider"
+            )), style = {'margin' : '20px'})]),
+            cyto.Cytoscape(
+                id='dag',
+                layout={'name': 'preset'},
+                style={'width': '100%', 'height': '600px'},
+                elements=dataPoints,
+                stylesheet=style,
+                responsive=True
+            )]),width=7),
         
         dbc.Col(dbc.Button('?', id='btnHelp', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width':'40px'}), width=1)    
     ]),
@@ -164,10 +168,9 @@ def toggle_modal(n, data, is_open):
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
-def showSearchrun(stylesheet, runname, restrictions, timesteps):
+def showSearchrun(stylesheet, runname, restrictions, length):
     run = runHandler.getRunAsDF(runname)
     runLength = runHandler.getRunLength(run)
-    length = int(runLength * (timesteps/100))
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
     for s in range(0, length):
@@ -217,24 +220,22 @@ def showSearchrun(stylesheet, runname, restrictions, timesteps):
                         edges.update({edge: newWeight})
                         stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge]), 'target-arrow-shape' : 'triangle',  'curve-style': 'bezier'}})
             
-    return stylesheet
+    return runLength, stylesheet
         
 
-@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("timesteps-slider", "value"))
-def dag(n, stylesheet, runname, restrictions, timesteps):
-    msg = "Click \"Show graph\" to visualise run"
-    if "btnStart" == ctx.triggered_id:
-        global edges
-        global nodes
-        edges = {}
-        nodes = {}
-        if restrictions == "all": 
-            msg = "This is the dag for \"" + runname +"\" with no restrictions and " + str(timesteps) +"% of the solutions"
-        else: 
-            msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\"" + str(timesteps) +"% of the solutions"
-        newStyle = showSearchrun(stylesheet, runname, restrictions, timesteps)
-        return msg, newStyle
-    return msg, style
+@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"))
+def dag(runname, restrictions, timesteps):
+    global edges
+    global nodes
+    edges = {}
+    nodes = {}
+    if restrictions == "all": 
+        msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(timesteps)
+    else: 
+        msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\" at timestep" + str(timesteps)
+    newStyle = style.copy()
+    runLength, newStyle = showSearchrun(newStyle, runname, restrictions, timesteps)
+    return msg, newStyle, runLength
 
 
 if __name__ == '__main__':
