@@ -96,7 +96,8 @@ def getPerformances(run):
     performances = run["performance"].to_numpy()
     return performances
 
-def getRunLength(run):
+def getRunLength(runname):
+    run = getRunAsDF(runname)
     length = len(run.index)
     return length
 

@@ -170,7 +170,7 @@ def toggle_modal(n, data, is_open):
 
 def showSearchrun(stylesheet, runname, restrictions, length):
     run = runHandler.getRunAsDF(runname)
-    runLength = runHandler.getRunLength(run)
+    runLength = runHandler.getRunLength(runname)
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
     for s in range(0, length):
@@ -220,22 +220,25 @@ def showSearchrun(stylesheet, runname, restrictions, length):
                         edges.update({edge: newWeight})
                         stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge]), 'target-arrow-shape' : 'triangle',  'curve-style': 'bezier'}})
             
-    return runLength, stylesheet
+    return stylesheet
         
 
-@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"))
-def dag(runname, restrictions, timesteps):
+@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input("slider", "max"))
+def dag(runname, restrictions, timesteps, max):
     global edges
     global nodes
     edges = {}
     nodes = {}
+    newStyle = style.copy()
+    runLength = runHandler.getRunLength(runname)
+    if max != runLength:
+        timesteps = 0
     if restrictions == "all": 
         msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(timesteps)
     else: 
         msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\" at timestep" + str(timesteps)
-    newStyle = style.copy()
-    runLength, newStyle = showSearchrun(newStyle, runname, restrictions, timesteps)
-    return msg, newStyle, runLength
+    newStyle = showSearchrun(newStyle, runname, restrictions, timesteps)
+    return msg, newStyle, runLength, timesteps
 
 
 if __name__ == '__main__':
