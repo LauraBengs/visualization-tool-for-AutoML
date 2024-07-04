@@ -96,8 +96,15 @@ def getPerformances(run):
     performances = run["performance"].to_numpy()
     return performances
 
+def getRunLength(run):
+    length = len(run.index)
+    return length
+
 #run = getRunAsDF('runs/best_first_747_4h.json')
 #run = getRunAsDF('runs/bohb_eval_407.json')
+#print(run)
+#print(getRunLength(run))
+#run.to_excel("table.xlsx")
 #comp = getAllComponentSolutions(run)
 #print(comp)
 #print(getPerformances(run))

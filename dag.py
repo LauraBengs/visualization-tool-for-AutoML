@@ -105,6 +105,12 @@ app.layout = html.Div([
                                 {"label": "Performance >= 0.66", "value": "0.66"},
                                 {"label": "Performance > 0.9", "value": "0.9"}],
                             value= "all")])])]),
+                html.H4("Timesteps"),
+                dcc.Slider(0, 100, 2, 
+                           value=100,
+                           marks=None,
+                           tooltip={"placement": "bottom", "always_visible": True},
+                           id="timesteps-slider"),
                 html.Div([dbc.Button('Show graph', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '90%'})]),
                           #dbc.Button('Start visualisation', id='btnVis', n_clicks=0, color="secondary")]),
                 html.Div(id='text')
@@ -158,11 +164,13 @@ def toggle_modal(n, data, is_open):
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
-def showSearchrun(stylesheet, runname, restrictions):
+def showSearchrun(stylesheet, runname, restrictions, timesteps):
     run = runHandler.getRunAsDF(runname)
+    runLength = runHandler.getRunLength(run)
+    length = int(runLength * (timesteps/100))
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
-    for s in range(0, len(solutions)):
+    for s in range(0, length):
         solComponents = solutions[s]
         solPerformance = performances[s]
         color = ""
@@ -212,8 +220,8 @@ def showSearchrun(stylesheet, runname, restrictions):
     return stylesheet
         
 
-@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'), Input("runSelector", "value"), Input("runRestrictions", "value"))
-def dag(n, stylesheet, runname, restrictions):
+@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Input('btnStart', 'n_clicks'), Input('dag', 'stylesheet'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("timesteps-slider", "value"))
+def dag(n, stylesheet, runname, restrictions, timesteps):
     msg = "Click \"Show graph\" to visualise run"
     if "btnStart" == ctx.triggered_id:
         global edges
@@ -221,10 +229,10 @@ def dag(n, stylesheet, runname, restrictions):
         edges = {}
         nodes = {}
         if restrictions == "all": 
-            msg = "This is the dag for \"" + runname +"\" with no restrictions"
+            msg = "This is the dag for \"" + runname +"\" with no restrictions and " + str(timesteps) +"% of the solutions"
         else: 
-            msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\""
-        newStyle = showSearchrun(stylesheet, runname, restrictions)
+            msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\"" + str(timesteps) +"% of the solutions"
+        newStyle = showSearchrun(stylesheet, runname, restrictions, timesteps)
         return msg, newStyle
     return msg, style
 
