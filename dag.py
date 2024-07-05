@@ -73,6 +73,7 @@ style = [
     ]
 
 max = 0
+min = 0
 
 app.layout = html.Div([
     dbc.Row([
@@ -114,13 +115,17 @@ app.layout = html.Div([
         
         dbc.Col(html.Div([
             dbc.Row([
+                dbc.Col(dbc.Button('|◁', id='btnMin', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=1),
+                dbc.Col(dbc.Button('←', id='btnBack', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
                 dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
-                dbc.Col(html.Div(dcc.Slider(0, max, 1, 
-                           value=0,
+                dbc.Col(dbc.Button('→', id='btnNext', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
+                dbc.Col(dbc.Button('▷|', id='btnMax', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=1),
+                dbc.Col(html.Div(dcc.Slider(min, max, 1, 
+                           value=min,
                            marks=None,
                            tooltip={"placement": "bottom", "always_visible": True},
                            id="slider"
-            )), style = {'margin' : '20px'})]),
+            )), style = {'margin' : '20px'})], style={'backgroundColor':'#999999'}),
             cyto.Cytoscape(
                 id='dag',
                 layout={'name': 'preset'},
@@ -223,22 +228,25 @@ def showSearchrun(stylesheet, runname, restrictions, length):
     return stylesheet
         
 
-@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input("slider", "max"))
-def dag(runname, restrictions, timesteps, max):
+@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), State("slider", "min"), State("slider", "max"))
+def dag(n1, n2, n3, n4, runname, restrictions, currValue, min, max):
     global edges
     global nodes
     edges = {}
     nodes = {}
     newStyle = style.copy()
     runLength = runHandler.getRunLength(runname)
-    if max != runLength:
-        timesteps = 0
+    if "btnNext" == ctx.triggered_id and currValue < max: currValue += 1
+    if "btnBack" == ctx.triggered_id and currValue > min: currValue -= 1
+    if "btnMin" == ctx.triggered_id or max != runLength: currValue = min
+    if "btnMax" == ctx.triggered_id: currValue = max
     if restrictions == "all": 
-        msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(timesteps)
+        msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue)
     else: 
-        msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\" at timestep" + str(timesteps)
-    newStyle = showSearchrun(newStyle, runname, restrictions, timesteps)
-    return msg, newStyle, runLength, timesteps
+        msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\" at timestep" + str(currValue)
+    newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
+    return msg, newStyle, runLength, currValue
+
 
 
 if __name__ == '__main__':
