@@ -152,7 +152,7 @@ app.layout = html.Div([
             size = "lg"
     ),
     
-    dcc.Interval(id='interval-component', interval=80, n_intervals=0, disabled=True),
+    dcc.Interval(id='interval-component', interval=800, n_intervals=0, disabled=True),
 ])
  
  
@@ -251,15 +251,15 @@ def dag(n1, n2, n3, n4, runname, restrictions, currValue, min, max):
     newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
     return msg, newStyle, runLength, currValue
 
-@callback(Output('temp', 'children'), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'), Input('btnStart', 'n_clicks'), Input('interval-component', 'n_intervals'), State('interval-component', 'disabled'), State("slider", "max"))
+@callback(Output("slider", "value", allow_duplicate=True), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'), Input('btnStart', 'n_clicks'), Input('interval-component', 'n_intervals'), State('interval-component', 'disabled'), State("slider", "max"), prevent_initial_call=True)
 def update_countdown(n, n_intervals, disabled, max):
     if "btnStart" == ctx.triggered_id:
-        return str(n_intervals + 1), False, 0
+        return (n_intervals + 1), False, 0
     if disabled:
         raise dash.exceptions.PreventUpdate
     if n_intervals >= max:
-        return "Done!", True, 0 
-    return str(n_intervals + 1), False, n_intervals
+        return max, True, 0 
+    return (n_intervals + 1), False, n_intervals
 
 
 if __name__ == '__main__':
