@@ -232,35 +232,72 @@ def showSearchrun(stylesheet, runname, restrictions, length):
     return stylesheet
         
 
-@callback(Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), State("slider", "min"), State("slider", "max"))
-def dag(n1, n2, n3, n4, runname, restrictions, currValue, min, max):
+@callback(Output("btnStart", "children"), Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+          Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
+          State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
+def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, min, max, disabled):
     global edges
     global nodes
     edges = {}
     nodes = {}
     newStyle = style.copy()
     runLength = runHandler.getRunLength(runname)
-    if "btnNext" == ctx.triggered_id and currValue < max: currValue += 1
-    if "btnBack" == ctx.triggered_id and currValue > min: currValue -= 1
-    if "btnMin" == ctx.triggered_id or max != runLength: currValue = min
-    if "btnMax" == ctx.triggered_id: currValue = max
+    
+    if "btnStart" == ctx.triggered_id and disabled:
+        disabled = False 
+        btnStartSymbol = "||"
+    elif "btnStart" == ctx.triggered_id and not disabled:
+        disabled = True
+        btnStartSymbol = "▷"
+    elif "btnNext" == ctx.triggered_id and currValue < max: 
+        currValue += 1
+        intervalValue = currValue
+        disabled = True
+        btnStartSymbol = "▷"
+    elif "btnBack" == ctx.triggered_id and currValue > min: 
+        currValue -= 1
+        intervalValue = currValue
+        disabled = True
+        btnStartSymbol = "▷"
+    elif "btnMin" == ctx.triggered_id or max != runLength: 
+        currValue = min
+        intervalValue = currValue
+        disabled = True
+        btnStartSymbol = "▷"
+    elif "btnMax" == ctx.triggered_id: 
+        currValue = max
+        intervalValue = currValue
+        disabled = True
+        btnStartSymbol = "▷"
+    
+    if not disabled and intervalValue <= max:
+        currValue = intervalValue
+    elif not disabled and intervalValue > max:
+        disabled = True
+    
     if restrictions == "all": 
         msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue)
     else: 
         msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\" at timestep" + str(currValue)
+    
     newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
-    return msg, newStyle, runLength, currValue
+    intervalValue = currValue
+    
+    return btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
-@callback(Output("slider", "value", allow_duplicate=True), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'), Input('btnStart', 'n_clicks'), Input('interval-component', 'n_intervals'), State('interval-component', 'disabled'), State("slider", "max"), prevent_initial_call=True)
+'''
+@callback(Output("btnStart", "children"), Output("slider", "value", allow_duplicate=True), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'), Input('btnStart', 'n_clicks'), Input('interval-component', 'n_intervals'), State('interval-component', 'disabled'), State("slider", "max"), prevent_initial_call=True)
 def update_countdown(n, n_intervals, disabled, max):
-    if "btnStart" == ctx.triggered_id:
-        return (n_intervals + 1), False, 0
+    if "btnStart" == ctx.triggered_id and disabled:
+        return "||", n_intervals, False, n_intervals
+    elif "btnStart" == ctx.triggered_id and disabled == False:
+        return "▷", n_intervals, True, n_intervals
     if disabled:
         raise dash.exceptions.PreventUpdate
     if n_intervals >= max:
-        return max, True, 0 
-    return (n_intervals + 1), False, n_intervals
-
+        return "▷", max, True, 0 
+    return "||", n_intervals, False, n_intervals
+'''
 
 if __name__ == '__main__':
     app.run(debug=True)
