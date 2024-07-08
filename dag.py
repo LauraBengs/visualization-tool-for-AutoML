@@ -79,7 +79,7 @@ min = 0
 app.layout = html.Div([
     dbc.Row([
         dbc.Col([
-            html.Div([
+            dbc.Row([
                 html.H3("Visualisation configurator"),
                 dbc.Row([
                 dbc.Col([
@@ -109,9 +109,9 @@ app.layout = html.Div([
                                 {"label": "Performance >= 0.66", "value": "0.66"},
                                 {"label": "Performance > 0.9", "value": "0.9"}],
                             value= "all")])])]),
-                html.H4("Comment"),
-                html.Div(id='text')
-            ], style={'backgroundColor':'#999999'}),
+                html.H3("Comment"),
+                html.Div(id='config')
+            ], style={'backgroundColor':'#999999'})
         ]),
         
         dbc.Col(html.Div([
@@ -126,7 +126,7 @@ app.layout = html.Div([
                            marks=None,
                            tooltip={"placement": "bottom", "always_visible": True},
                            id="slider"
-            )), style = {'margin' : '20px'})], style={'backgroundColor':'#999999'}),
+            )), style = {'margin' : '20px'})], style={'backgroundColor':'#878787'}),
             html.Div(id="temp"),
             cyto.Cytoscape(
                 id='dag',
@@ -139,6 +139,10 @@ app.layout = html.Div([
         
         dbc.Col(dbc.Button('?', id='btnHelp', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width':'40px'}), width=1)    
     ]),
+    dbc.Row([
+                html.H4("Details about solution candidate"),
+                html.Div(id='solution')
+            ], style={'backgroundColor':'#878787'}),
     
     dbc.Modal(
             [
@@ -179,7 +183,6 @@ def toggle_modal(n, data, is_open):
 
 def showSearchrun(stylesheet, runname, restrictions, length):
     run = runHandler.getRunAsDF(runname)
-    runLength = runHandler.getRunLength(runname)
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
     for s in range(0, length):
@@ -230,9 +233,16 @@ def showSearchrun(stylesheet, runname, restrictions, length):
                         stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge]), 'target-arrow-shape' : 'triangle',  'curve-style': 'bezier'}})
             
     return stylesheet
+
+def getSolutionDetails(runname, length):
+    info = ""
+    if length != 0:
+        timestamp, components, performance, exceptions = runHandler.getSolutionDetails(runname, length)
+        info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
+    return info
         
 
-@callback(Output("btnStart", "children"), Output('text', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output("solution", "children"), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, min, max, disabled):
@@ -282,22 +292,9 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     
     newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
     intervalValue = currValue
+    info = getSolutionDetails(runname, currValue)
     
-    return btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
-
-'''
-@callback(Output("btnStart", "children"), Output("slider", "value", allow_duplicate=True), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'), Input('btnStart', 'n_clicks'), Input('interval-component', 'n_intervals'), State('interval-component', 'disabled'), State("slider", "max"), prevent_initial_call=True)
-def update_countdown(n, n_intervals, disabled, max):
-    if "btnStart" == ctx.triggered_id and disabled:
-        return "||", n_intervals, False, n_intervals
-    elif "btnStart" == ctx.triggered_id and disabled == False:
-        return "▷", n_intervals, True, n_intervals
-    if disabled:
-        raise dash.exceptions.PreventUpdate
-    if n_intervals >= max:
-        return "▷", max, True, 0 
-    return "||", n_intervals, False, n_intervals
-'''
+    return info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)

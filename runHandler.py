@@ -96,11 +96,40 @@ def getPerformances(run):
     performances = run["performance"].to_numpy()
     return performances
 
+def getAllExceptions(run):
+    exceptions = run["exceptions"].to_numpy()
+    return exceptions
+
+def getAllTimestamps(run):
+    timestamps = run["timestamp"].to_numpy()
+    return timestamps
+
 def getRunLength(runname):
     run = getRunAsDF(runname)
     length = len(run.index)
     return length
 
+def getSolutionDetails(runname, timestep):
+    run = getRunAsDF(runname)
+    timestamp = None
+    components = None
+    performance = None
+    exceptions = None
+    
+    allSolutions = getAllComponentSolutions(run)
+    allPerformances = getPerformances(run)
+    allTimestamps = getAllTimestamps(run)
+    allExceptions = getAllExceptions(run)
+    
+    if timestep != 0:
+        timestamp = allTimestamps[timestep-1]
+        components = allSolutions[timestep-1]
+        performance = allPerformances[timestep-1]
+        exceptions = allExceptions[timestep-1]
+        
+    
+    return timestamp, components, performance, exceptions
+        
 #run = getRunAsDF('runs/best_first_747_4h.json')
 #run = getRunAsDF('runs/bohb_eval_407.json')
 #print(run)
