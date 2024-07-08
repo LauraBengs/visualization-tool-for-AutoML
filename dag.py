@@ -237,8 +237,8 @@ def showSearchrun(stylesheet, runname, restrictions, length):
 def getSolutionDetails(runname, length):
     info = ""
     if length != 0:
-        timestamp, components, performance, exceptions = runHandler.getSolutionDetails(runname, length)
-        info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
+        timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length)
+        info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
     return info
         
 

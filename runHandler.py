@@ -14,16 +14,16 @@ def getRunAsDF(runname):
     
     timestamps = []
     components = []
+    parameterValues = []
     performance = []
     exceptions = []
     
     for element in data:
         elemTimestamp = getTimestamp(element)
         timestamps.append(elemTimestamp)
-        elemComponents = getComponents(element)
-        #print(elemComponents)
-        #print("---------------")
+        elemComponents, elemParameterValues = getComponents(element)
         components.append(elemComponents)
+        parameterValues.append(elemParameterValues)
         elemPerformance = getPerformanceValue(element)
         performance.append(elemPerformance)
         elementException = getException(element)
@@ -31,6 +31,7 @@ def getRunAsDF(runname):
     
     pandaData = {"timestamp": timestamps, 
                  "components": components,
+                 "parameterValues": parameterValues,
                  "performance": performance,
                  "exceptions": exceptions}
     
@@ -48,8 +49,9 @@ def printSearchrun(runname):
 def printElement(element):
     timestamp = getTimestamp(element)
     print("timestamp:", timestamp)
-    components = getComponents(element)
+    components, parameterValues = getComponents(element)
     print("components:", components)
+    print("parameterValues:", parameterValues)
     #if len(components) != 2: print(components)
     performance = getPerformanceValue(element)
     print("performance:", performance)
@@ -58,14 +60,17 @@ def printElement(element):
 
 def getComponents(element):
     componentsList = []
+    parameterValues = []
     label = ''
     if element == None: return componentsList
     components = element.get('component_instance')
     componentsDict = ast.literal_eval(components.replace("null", "None")) #converts string to dict
     elem = componentsDict.get('component').get('name')
+    parameter = componentsDict.get('parameterValues')
     if elem == None or elem == {}: return componentsList
     elemCleaned = componentHandler.cleanName(elem)
     componentsList.append(elemCleaned)
+    parameterValues.append(parameter)
     nextComponent = componentsDict.get('satisfactionOfRequiredInterfaces')
     nextComponentExists = True
     if nextComponent == {} or nextComponent == None: nextComponentExists = False
@@ -74,10 +79,12 @@ def getComponents(element):
         elem = nextComponent.get(label).get('component').get('name')
         elemCleaned = componentHandler.cleanName(elem)
         componentsList.append(elemCleaned)
+        parameter = nextComponent.get(label).get('parameterValues')
+        parameterValues.append(parameter)
         nextComponent = nextComponent.get(label).get('satisfactionOfRequiredInterfaces')
         if nextComponent == {} or nextComponent == None: nextComponentExists = False
         else: label = str(nextComponent)[2]
-    return componentsList
+    return componentsList, parameterValues
 
 def getTimestamp(element):
     return element.get('timestamp_found')
@@ -104,6 +111,10 @@ def getAllTimestamps(run):
     timestamps = run["timestamp"].to_numpy()
     return timestamps
 
+def getAllParameterValues(run):
+    parameterValues = run["parameterValues"].to_numpy()
+    return parameterValues
+
 def getRunLength(runname):
     run = getRunAsDF(runname)
     length = len(run.index)
@@ -113,25 +124,31 @@ def getSolutionDetails(runname, timestep):
     run = getRunAsDF(runname)
     timestamp = None
     components = None
+    parameterValues = None
     performance = None
     exceptions = None
     
-    allSolutions = getAllComponentSolutions(run)
-    allPerformances = getPerformances(run)
     allTimestamps = getAllTimestamps(run)
+    allSolutions = getAllComponentSolutions(run)
+    allParameterValues = getAllParameterValues(run)
+    allPerformances = getPerformances(run)
     allExceptions = getAllExceptions(run)
+    
     
     if timestep != 0:
         timestamp = allTimestamps[timestep-1]
         components = allSolutions[timestep-1]
+        parameterValues = allParameterValues[timestep-1]
         performance = allPerformances[timestep-1]
         exceptions = allExceptions[timestep-1]
         
     
-    return timestamp, components, performance, exceptions
-        
-#run = getRunAsDF('runs/best_first_747_4h.json')
-#run = getRunAsDF('runs/bohb_eval_407.json')
+    return timestamp, components, parameterValues, performance, exceptions
+
+#runname = 'runs/best_first_747_4h.json'
+#runname = 'runs/bohb_eval_407.json'
+#run = getRunAsDF(runname)
+#printSearchrun(runname)
 #print(run)
 #print(getRunLength(run))
 #run.to_excel("table.xlsx")
