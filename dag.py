@@ -86,6 +86,7 @@ app.layout = html.Div([
                     html.Div([html.H4("Choose run"),
                         dbc.RadioItems(id="runSelector", 
                             options=[
+                                {"label": "Show searchspace", "value": "searchspace"},
                                 {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
                                 {"label": "bohb_eval_407", "value": "runs/bohb_eval_407.json"},
                                 {"label": "bohb_eval_409", "value": "runs/bohb_eval_409.json"},
@@ -99,7 +100,7 @@ app.layout = html.Div([
                                 {"label": "random_eval_138", "value": "runs/random_eval_138.json"},
                                 {"label": "random_eval_151", "value": "runs/random_eval_151.json"}
                                 ],
-                            value= "runs/best_first_747_4h.json")])]),
+                            value= "searchspace")])]),
                 dbc.Col([
                     html.Div([html.H4("Restrictions"),
                         dbc.RadioItems(id="runRestrictions", 
@@ -182,6 +183,16 @@ def toggle_modal(n, data, is_open):
     return is_open, '', ''
 
 def showSearchrun(stylesheet, runname, restrictions, length):
+    if runname == "searchspace":
+        stylesheet = [
+            {'selector': 'node','style': {'content': 'data(label)'}},
+            {'selector': '.Kernel', 'style': { 'background-color': '#EC9F05'}},
+            {'selector': '.BaseSLC', 'style': { 'background-color': '#4A6C6F'}},
+            {'selector': '.MetaSLC', 'style': { 'background-color': '#A1C084'}},
+            {'selector': '.BaseMLC', 'style': { 'background-color': '#A63446'}},
+            {'selector': '.MetaMLC', 'style': { 'background-color': '#D89A9E'}},
+            {'selector':'edge', 'style':{'line-color':'#adaaaa'}}]
+        return stylesheet
     run = runHandler.getRunAsDF(runname)
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
@@ -235,8 +246,8 @@ def showSearchrun(stylesheet, runname, restrictions, length):
     return stylesheet
 
 def getSolutionDetails(runname, length):
-    info = ""
-    if length != 0:
+    info = ""        
+    if length != 0 and runname != "searchspace":
         timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length)
         info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
     return info
@@ -251,7 +262,11 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     edges = {}
     nodes = {}
     newStyle = style.copy()
-    runLength = runHandler.getRunLength(runname)
+    
+    if runname == "searchspace":
+        runLength = 0
+    else:
+        runLength = runHandler.getRunLength(runname)
     
     if "btnStart" == ctx.triggered_id and disabled:
         disabled = False 
@@ -289,6 +304,9 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
         msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue)
     else: 
         msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\" at timestep" + str(currValue)
+    
+    if runname == "searchspace":
+        msg = "This is the dag showing all components and possible connections for our searchspace"
     
     newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
     intervalValue = currValue
