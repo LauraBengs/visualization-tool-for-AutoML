@@ -81,10 +81,8 @@ app.layout = html.Div([
         dbc.Col([
             dbc.Row([
                 html.H3("Visualisation configurator"),
-                dbc.Row([
-                dbc.Col([
                     html.Div([html.H4("Choose run"),
-                        dbc.RadioItems(id="runSelector", 
+                        dcc.Dropdown(id="runSelector", 
                             options=[
                                 {"label": "Show searchspace", "value": "searchspace"},
                                 {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
@@ -100,16 +98,17 @@ app.layout = html.Div([
                                 {"label": "random_eval_138", "value": "runs/random_eval_138.json"},
                                 {"label": "random_eval_151", "value": "runs/random_eval_151.json"}
                                 ],
-                            value= "searchspace")])]),
-                dbc.Col([
+                            value= "searchspace",
+                            clearable=False)]),
                     html.Div([html.H4("Restrictions"),
-                        dbc.RadioItems(id="runRestrictions", 
+                        dcc.Dropdown(id="runRestrictions", 
                             options=[
                                 {"label": "Show everything", "value": "all"},
                                 {"label": "Performance >= 0.33", "value": "0.33"},
                                 {"label": "Performance >= 0.66", "value": "0.66"},
                                 {"label": "Performance > 0.9", "value": "0.9"}],
-                            value= "all")])])]),
+                            value= "all",
+                            clearable=False)]),
                 html.H3("Comment"),
                 html.Div(id='config')
             ], style={'backgroundColor':'#999999'})
@@ -159,16 +158,15 @@ app.layout = html.Div([
     
     dcc.Interval(id='interval-component', interval=800, n_intervals=0, disabled=True),
 ])
- 
- 
+
 def getInfosForModal(data):
     modalHeader = data['label']
     component = searchspace.loc[searchspace['name'] == modalHeader]
     modalText = searchSpaceHandler.getComponentInfo(component)
     return modalHeader, modalText
-     
+
 @callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('btnHelp', 'n_clicks'), Input('dag', 'tapNodeData'), State("modal", "is_open"))
-def toggle_modal(n, data, is_open): 
+def toggle_modal(n, data, is_open):
     if "btnHelp" == ctx.triggered_id:
         modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
         performance = "##### Performance \n - Given by the colour of a node \n - Yellow: Performance <= 0.33 \n - Orange: Performance <= 0.66 \n - Red: Performance <= 0.66 \n - Darkred: Performance > 0.9 \n - Grey: No performance value available \n"
