@@ -5,10 +5,8 @@ import ast
 import pandas as pd
 import numpy
 import componentHandler
-import searchSpaceHandler
 
-def getRunAsDF(runname):
-    searchspace = searchSpaceHandler.getSearchSpaceAsDF()
+def getRunAsDF(runname, searchspace):
     jsonFile = open(runname) 
     convertedFile = json.load(jsonFile) #converts data of json file into a ?list?
     data = convertedFile[2].get('data')
@@ -136,13 +134,13 @@ def getAllValid(run):
     valid = run["valid"].to_numpy()
     return valid
 
-def getRunLength(runname):
-    run = getRunAsDF(runname)
+def getRunLength(runname, searchspace):
+    run = getRunAsDF(runname, searchspace)
     length = len(run.index)
     return length
 
-def getSolutionDetails(runname, timestep):
-    run = getRunAsDF(runname)
+def getSolutionDetails(runname, timestep, searchspace):
+    run = getRunAsDF(runname, searchspace)
     valids = getAllValid(run)
 
     isValid = None
@@ -174,7 +172,7 @@ def getSolutionDetails(runname, timestep):
 #runname = 'runs/best_first_747_4h.json'
 #runname = 'runs/bohb_eval_407.json'
 #runname = 'runs/random_eval_138.json'
-#run = getRunAsDF(runname)
+#run = getRunAsDF(runname, searchspace)
 #printSearchrun(runname)
 #print(run)
 #print(getRunLength(run))
@@ -182,25 +180,3 @@ def getSolutionDetails(runname, timestep):
 #comp = getAllComponentSolutions(run)
 #print(comp)
 #print(getPerformances(run))
-
-def percentageValidtoIncorrect():
-    import searchSpaceHandler
-    searchspace = searchSpaceHandler.getSearchSpaceAsDF()
-    runnames = ["runs/best_first_747_4h.json", "runs/bohb_eval_407.json", "runs/bohb_eval_409.json", "runs/ggp_eval_407.json", "runs/ggp_eval_409.json", "runs/gmfs_eval.json", "runs/gmfs_eval_407.json", "runs/gmfs_eval_409.json", "runs/hblike_eval_786.json", "runs/hblike_eval_811.json", "runs/random_eval_138.json", "runs/random_eval_151.json"]
-    for elem in runnames:
-        print(elem)
-        run = getRunAsDF(elem)
-        comp = getAllComponentSolutions(run)
-        validSolutions = 0
-        falseSolutions = 0
-        for elem in comp:
-            valid = isSolutionValid(elem, searchspace)
-            if valid: validSolutions += 1
-            else: falseSolutions += 1
-        print("valid solutions: " + str(validSolutions))
-        print("incorrect solutions: " + str(falseSolutions))
-        score = falseSolutions / (falseSolutions + validSolutions)
-        print("percentage of incorrect solutions: " + str(score))
-        print("\n")
-
-#percentageValidtoIncorrect()

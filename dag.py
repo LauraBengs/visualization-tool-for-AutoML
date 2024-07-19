@@ -217,7 +217,7 @@ def showSearchrun(stylesheet, runname, restrictions, length):
             {'selector': '.MetaMLC', 'style': { 'background-color': '#D89A9E'}},
             {'selector':'edge', 'style':{'line-color':'#adaaaa'}}]
         return stylesheet
-    run = runHandler.getRunAsDF(runname)
+    run = runHandler.getRunAsDF(runname, searchspace)
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
     valids = runHandler.getAllValid(run)
@@ -279,7 +279,7 @@ def showSearchrun(stylesheet, runname, restrictions, length):
 def getSolutionDetails(runname, length):
     info = ""
     if length != 0 and runname != "searchspace":
-        isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length)
+        isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length, searchspace)
         if isValid:
             info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
         else:
@@ -300,7 +300,7 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     if runname == "searchspace":
         runLength = 0
     else:
-        runLength = runHandler.getRunLength(runname)
+        runLength = runHandler.getRunLength(runname, searchspace)
     
     if "btnStart" == ctx.triggered_id and disabled:
         disabled = False 
