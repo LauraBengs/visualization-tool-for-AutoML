@@ -86,6 +86,17 @@ def getComponents(element):
         else: label = str(nextComponent)[2]
     return componentsList, parameterValues
 
+def isSolutionValid(componentsList, searchspace):
+    valid = True
+    allCategories = []
+    for elem in componentsList:
+        info = searchspace.loc[searchspace['name'] == elem]
+        category = info.iat[0,0]
+        allCategories.append(category)
+    if len(set(allCategories)) != len(allCategories):
+        valid = False
+    return valid
+
 def getTimestamp(element):
     return element.get('timestamp_found')
 
@@ -145,8 +156,10 @@ def getSolutionDetails(runname, timestep):
     
     return timestamp, components, parameterValues, performance, exceptions
 
+######################## This part can be deleted, i just tested a few things and used the code for debugging #####################################
 #runname = 'runs/best_first_747_4h.json'
 #runname = 'runs/bohb_eval_407.json'
+#runname = 'runs/random_eval_138.json'
 #run = getRunAsDF(runname)
 #printSearchrun(runname)
 #print(run)
@@ -155,3 +168,25 @@ def getSolutionDetails(runname, timestep):
 #comp = getAllComponentSolutions(run)
 #print(comp)
 #print(getPerformances(run))
+
+def percentageValidtoIncorrect():
+    import searchSpaceHandler
+    searchspace = searchSpaceHandler.getSearchSpaceAsDF()
+    runnames = ["runs/best_first_747_4h.json", "runs/bohb_eval_407.json", "runs/bohb_eval_409.json", "runs/ggp_eval_407.json", "runs/ggp_eval_409.json", "runs/gmfs_eval.json", "runs/gmfs_eval_407.json", "runs/gmfs_eval_409.json", "runs/hblike_eval_786.json", "runs/hblike_eval_811.json", "runs/random_eval_138.json", "runs/random_eval_151.json"]
+    for elem in runnames:
+        print(elem)
+        run = getRunAsDF(elem)
+        comp = getAllComponentSolutions(run)
+        validSolutions = 0
+        falseSolutions = 0
+        for elem in comp:
+            valid = isSolutionValid(elem, searchspace)
+            if valid: validSolutions += 1
+            else: falseSolutions += 1
+        print("valid solutions: " + str(validSolutions))
+        print("incorrect solutions: " + str(falseSolutions))
+        score = falseSolutions / (falseSolutions + validSolutions)
+        print("percentage of incorrect solutions: " + str(score))
+        print("\n")
+
+percentageValidtoIncorrect()
