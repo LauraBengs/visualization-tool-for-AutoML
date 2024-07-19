@@ -19,10 +19,15 @@ nodes = {}
 x = 0
 y = 0
 yK = 0
+iK = 1
 yBS = 0
+iBS = 1
 yMS = 0
+iMS = 1
 yBM = 0
+iBM = 1
 yMM = 0
+iMM = 1
 
 components = []
 
@@ -30,23 +35,43 @@ for i in range(0, len(allComponentNames)):
     if categories[i] == "Kernel": 
         x = 0
         y = yK
-        yK += 60
+        if yK >= 0:
+            yK = yK - iK * 60
+        else: 
+            yK = yK + iK * 60
+        iK += 1
     elif categories[i] == "BaseSLC": 
         x = 300
         y = yBS
-        yBS += 60
+        if yBS >= 0:
+            yBS = yBS - iBS * 60
+        else: 
+            yBS = yBS + iBS * 60
+        iBS += 1
     elif categories[i] == "MetaSLC": 
         x = 600
         y = yMS
-        yMS += 60
+        if yMS >= 0:
+            yMS = yMS - iMS * 60
+        else: 
+            yMS = yMS + iMS * 60
+        iMS += 1
     elif categories[i] == "BaseMLC": 
         x = 900
         y = yBM
-        yBM += 60
+        if yBM >= 0:
+            yBM = yBM - iBM * 60
+        else: 
+            yBM = yBM + iBM * 60
+        iBM += 1
     elif categories[i] == "MetaMLC": 
         x = 1200
         y = yMM
-        yMM += 60
+        if yMM >= 0:
+            yMM = yMM - iMM * 60
+        else: 
+            yMM = yMM + iMM * 60
+        iMM += 1
     
     components.append({'data': {'id': allComponentNames[i], 'label': allComponentNames[i]}, 'position': {'x': x, 'y': y}, 'classes': categories[i]})
 
@@ -170,8 +195,9 @@ def toggle_modal(n, data, is_open):
     if "btnHelp" == ctx.triggered_id:
         modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
         performance = "##### Performance \n - Given by the colour of a node \n - Yellow: Performance <= 0.33 \n - Orange: Performance <= 0.66 \n - Red: Performance <= 0.66 \n - Darkred: Performance > 0.9 \n - Grey: No performance value available \n"
-        edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times"
-        modalText = dcc.Markdown(performance + edge)
+        edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times \n"
+        filter = "##### Filter \n Solution candidates that contain two or more components from one categorie will not be visualised. \n A corresponding message about why a solution candidate is not being visualised can be found in the details section."
+        modalText = dcc.Markdown(performance + edge + filter)
         return not is_open, modalHeader, modalText
     elif data is not None:
         header, text = getInfosForModal(data)
