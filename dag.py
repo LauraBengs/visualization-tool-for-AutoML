@@ -156,7 +156,7 @@ app.layout = html.Div([
             cyto.Cytoscape(
                 id='dag',
                 layout={'name': 'preset'},
-                style={'width': '100%', 'height': '600px'},
+                style={'width': '100%', 'height': '400px'},
                 elements=dataPoints,
                 stylesheet=style,
                 responsive=True
@@ -220,9 +220,16 @@ def showSearchrun(stylesheet, runname, restrictions, length):
     run = runHandler.getRunAsDF(runname)
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
+    valids = runHandler.getAllValid(run)
+    
     for s in range(0, length):
         solComponents = solutions[s]
         solPerformance = performances[s]
+        isValid = valids[s]
+        
+        if isValid == False:
+            continue
+        
         color = ""
         opacity = "0"
         if solPerformance == None:
@@ -270,10 +277,13 @@ def showSearchrun(stylesheet, runname, restrictions, length):
     return stylesheet
 
 def getSolutionDetails(runname, length):
-    info = ""        
+    info = ""
     if length != 0 and runname != "searchspace":
-        timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length)
-        info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
+        isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length)
+        if isValid:
+            info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
+        else:
+            info = "This solution is not valid according to our definition (The solution probably consists of two or more components belonging to the same category)."
     return info
         
 

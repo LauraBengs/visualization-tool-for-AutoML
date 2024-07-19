@@ -5,8 +5,10 @@ import ast
 import pandas as pd
 import numpy
 import componentHandler
+import searchSpaceHandler
 
 def getRunAsDF(runname):
+    searchspace = searchSpaceHandler.getSearchSpaceAsDF()
     jsonFile = open(runname) 
     convertedFile = json.load(jsonFile) #converts data of json file into a ?list?
     data = convertedFile[2].get('data')
@@ -17,6 +19,7 @@ def getRunAsDF(runname):
     parameterValues = []
     performance = []
     exceptions = []
+    valid = []
     
     for element in data:
         elemTimestamp = getTimestamp(element)
@@ -28,12 +31,15 @@ def getRunAsDF(runname):
         performance.append(elemPerformance)
         elementException = getException(element)
         exceptions.append(elementException)
+        isValid = isSolutionValid(elemComponents, searchspace)
+        valid.append(isValid)
     
     pandaData = {"timestamp": timestamps, 
                  "components": components,
                  "parameterValues": parameterValues,
                  "performance": performance,
-                 "exceptions": exceptions}
+                 "exceptions": exceptions,
+                 "valid": valid}
     
     run = pd.DataFrame(pandaData)
     return run
@@ -126,6 +132,10 @@ def getAllParameterValues(run):
     parameterValues = run["parameterValues"].to_numpy()
     return parameterValues
 
+def getAllValid(run):
+    valid = run["valid"].to_numpy()
+    return valid
+
 def getRunLength(runname):
     run = getRunAsDF(runname)
     length = len(run.index)
@@ -133,6 +143,9 @@ def getRunLength(runname):
 
 def getSolutionDetails(runname, timestep):
     run = getRunAsDF(runname)
+    valids = getAllValid(run)
+
+    isValid = None
     timestamp = None
     components = None
     parameterValues = None
@@ -147,6 +160,7 @@ def getSolutionDetails(runname, timestep):
     
     
     if timestep != 0:
+        isValid = valids[timestep-1]
         timestamp = allTimestamps[timestep-1]
         components = allSolutions[timestep-1]
         parameterValues = allParameterValues[timestep-1]
@@ -154,7 +168,7 @@ def getSolutionDetails(runname, timestep):
         exceptions = allExceptions[timestep-1]
         
     
-    return timestamp, components, parameterValues, performance, exceptions
+    return isValid, timestamp, components, parameterValues, performance, exceptions
 
 ######################## This part can be deleted, i just tested a few things and used the code for debugging #####################################
 #runname = 'runs/best_first_747_4h.json'
@@ -189,4 +203,4 @@ def percentageValidtoIncorrect():
         print("percentage of incorrect solutions: " + str(score))
         print("\n")
 
-percentageValidtoIncorrect()
+#percentageValidtoIncorrect()
