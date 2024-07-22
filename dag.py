@@ -154,34 +154,32 @@ app.layout = html.Div([
                 html.Hr(style={'borderColor':colMain})
             ]),
             dbc.Row([
-                dbc.Col(cyto.Cytoscape(
-                    id='dag',
-                    layout={'name': 'preset'},
-                    style={'width': '100%', 'height': '400px'},
-                    elements=dataPoints,
-                    stylesheet=style,
-                    responsive=True
-                )),
-                dbc.Col()
-            ]),
-                dbc.Row([
-                dbc.Col(dbc.Button('|◁', id='btnMin', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=1),
-                dbc.Col(dbc.Button('←', id='btnBack', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
-                dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
-                dbc.Col(dbc.Button('→', id='btnNext', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
-                dbc.Col(dbc.Button('▷|', id='btnMax', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=1),
-                dbc.Col(html.Div(dcc.Slider(min, max, 1, 
-                           value=min,
-                           marks=None,
-                           tooltip={"placement": "bottom", "always_visible": True},
-                           id="slider"
-            )), style = {'margin' : '20px'})], style={'backgroundColor':'#878787'})],width=10),
+                dbc.Col([
+                    cyto.Cytoscape(
+                        id='dag',
+                        layout={'name': 'preset'},
+                        style={'width': '100%', 'height': '400px'},
+                        elements=dataPoints,
+                        stylesheet=style,
+                        responsive=True),
+                    html.Div([
+                        dcc.Slider(min, max, 1, value=min, marks=None, tooltip={"placement": "bottom", "always_visible": True}, id="slider"),
+                        dbc.Row([
+                            dbc.Col(dbc.Button('|◁', id='btnMin', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2),
+                            dbc.Col(dbc.Button('←', id='btnBack', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
+                            dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
+                            dbc.Col(dbc.Button('→', id='btnNext', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
+                            dbc.Col(dbc.Button('▷|', id='btnMax', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2)
+                        ]),
+                    ], style={'backgroundColor':colSecond}),
+                ], width=5),
+                dbc.Col([
+                    html.H5(id='solutionHeader'),
+                    html.Div(id='solution', style={'white-space':'pre'})
+                ], width=7)
+            ])
+        ],width=10),
     ]),
-    dbc.Row([
-                html.H4("Details about solution candidate"),
-                html.Div(id='solution', style={'white-space':'pre'})
-            ], style={'backgroundColor':'#878787'}),
-    
     dbc.Modal(
             [
                 dbc.ModalHeader(id="modal-header"),
@@ -290,7 +288,9 @@ def showSearchrun(stylesheet, runname, restrictions, length):
     return stylesheet
 
 def getSolutionDetails(runname, length):
-    info = ""
+    info = "Please click start, skip to the next timstep or drag the slider to get infos about a specifc solution candidate."
+    if runname == "searchspace":
+        info = "More infos about the solution candidate at timestep x will be provided here."
     if length != 0 and runname != "searchspace":
         isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length, searchspace)
         if isValid:
@@ -300,7 +300,7 @@ def getSolutionDetails(runname, length):
     return info
         
 
-@callback(Output("solution", "children"), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('solutionHeader', 'children'), Output("solution", "children"), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, min, max, disabled):
@@ -310,6 +310,7 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     nodes = {}
     newStyle = style.copy()
     info = ""
+    solutionHeader = "Details about solution candidate at timestep "
     runLength = 0
     
     if restrictions == None:
@@ -356,17 +357,19 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     else: 
         msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue)
     
+    solutionHeader += str(currValue)
+    
     if runname == "searchspace":
         msg = "This is the dag showing all components and possible connections for our searchspace"
-    
-    
+        solutionHeader = "Details about solution candidate at timestep x"
+
     intervalValue = currValue
     
     if restrictions != None:
         newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
         info = getSolutionDetails(runname, currValue)
     
-    return info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
