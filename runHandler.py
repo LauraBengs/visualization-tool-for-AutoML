@@ -6,12 +6,7 @@ import pandas as pd
 import numpy
 import componentHandler
 
-def getRunAsDF(runname, searchspace):
-    jsonFile = open(runname) 
-    convertedFile = json.load(jsonFile) #converts data of json file into a ?list?
-    data = convertedFile[2].get('data')
-    jsonFile.close()
-    
+def getRunAsDF(data, searchspace):
     timestamps = []
     components = []
     parameterValues = []
@@ -134,13 +129,11 @@ def getAllValid(run):
     valid = run["valid"].to_numpy()
     return valid
 
-def getRunLength(runname, searchspace):
-    run = getRunAsDF(runname, searchspace)
+def getRunLength(run):
     length = len(run.index)
     return length
 
-def getSolutionDetails(runname, timestep, searchspace):
-    run = getRunAsDF(runname, searchspace)
+def getSolutionDetails(run, timestep):
     valids = getAllValid(run)
 
     isValid = None

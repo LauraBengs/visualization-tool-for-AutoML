@@ -4,6 +4,9 @@ import dash
 from dash import Dash, html, Input, Output, callback, State, dcc, ctx
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
+import json 
+import base64
+import io
 
 #color names
 colMain = '#353A47'
@@ -17,6 +20,11 @@ searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 allComponentNames = searchSpaceHandler.getAllComponentNames(searchspace)
 allComponentFullNames = searchSpaceHandler.getAllComponentfullNames(searchspace)
 categories = searchSpaceHandler.getAllCategories(searchspace)
+
+runSelector = None
+run = None
+uploadedFile = False
+uploadedRunname = None
 
 edges = {}
 nodes = {}
@@ -140,12 +148,24 @@ app.layout = html.Div([
                             value= "searchspace",
                             clearable=False)]),
                 html.H5("Upload run"),
+                dcc.Upload(id='uploadRun', children=html.Div(['Drag and Drop or \n', html.A('Select Files')]),
+                           style={
+                               'width': '100%',
+                               'height': '60px',
+                               'lineHeight': '30px',
+                               'borderWidth': '1px',
+                               'borderStyle': 'dashed',
+                               'borderRadius': '5px',
+                               'textAlign': 'center',
+                               'white-space':'pre'
+                            },
+                ),
+                html.Div(id='uploadError'),
                 html.H4("Restrictions"),
                 html.Hr(style={'borderColor':colMain}),
                 html.H5("Performance"),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
                 html.Div("Only visualise solutions with a performance greater or equal to this value."),
-                        
                 html.H4("Comment"),
                 html.Hr(style={'borderColor':colMain}),
                 html.Div(id='config')
@@ -221,7 +241,7 @@ def toggle_modal(n, data, is_open):
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
-def showSearchrun(stylesheet, runname, restrictions, length):    
+def showSearchrun(stylesheet, run, runname, restrictions, length):    
     if runname == "searchspace":
         stylesheet = [
             {'selector': 'node','style': {'content': 'data(label)'}},
@@ -232,7 +252,7 @@ def showSearchrun(stylesheet, runname, restrictions, length):
             {'selector': '.MetaMLC', 'style': { 'background-color': '#D89A9E'}},
             {'selector':'edge', 'style':{'line-color':'#adaaaa'}}]
         return stylesheet
-    run = runHandler.getRunAsDF(runname, searchspace)
+   
     solutions = runHandler.getAllComponentSolutions(run)
     performances = runHandler.getPerformances(run)
     valids = runHandler.getAllValid(run)
@@ -291,12 +311,12 @@ def showSearchrun(stylesheet, runname, restrictions, length):
             
     return stylesheet
 
-def getSolutionDetails(runname, length):
+def getSolutionDetails(run, runname, length):
     info = "Please click start, skip to the next timstep or drag the slider to get infos about a specifc solution candidate."
     if runname == "searchspace":
         info = "More infos about the solution candidate at timestep x will be provided here."
     if length != 0 and runname != "searchspace":
-        isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(runname, length, searchspace)
+        isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(run, length)
         if isValid:
             info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
         else:
@@ -304,10 +324,10 @@ def getSolutionDetails(runname, length):
     return info
         
 
-@callback(Output('solutionHeader', 'children'), Output("solution", "children"), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
-          Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
-          State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
-def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, min, max, disabled):
+@callback(Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+          Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
+          State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
+def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
     global edges
     global nodes
     edges = {}
@@ -316,13 +336,45 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     info = ""
     solutionHeader = "Details about solution candidate at timestep "
     runLength = 0
+    global run
+    global runSelector
+    global uploadedFile
+    global uploadedRunname
+    uploadError = ""
+    msg = ""
+
+    if upload != None:
+        if ".json" in uploadName:
+            content_type, content_string = upload.split(',')
+            decoded = base64.b64decode(content_string)
+            convertedFile = json.load(io.StringIO(decoded.decode('utf-8')))
+            data = convertedFile[2].get('data')
+            run = runHandler.getRunAsDF(data, searchspace)
+            uploadedRunname = uploadName
+            uploadedFile = True
+            runname = uploadName
+        else:
+            uploadError = "Please upload a .json file"
+            return uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        upload = None
+    elif runname != "searchspace" and runname != runSelector:
+        jsonFile = open(runname) 
+        convertedFile = json.load(jsonFile)
+        data = convertedFile[2].get('data')
+        jsonFile.close()
+        run = runHandler.getRunAsDF(data, searchspace)
+        runSelector = runname
+        uploadedFile = False
+        uploadedRunname = None
+    elif uploadedFile:
+        runname = uploadedRunname
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
-        runLength = runHandler.getRunLength(runname, searchspace)
+        runLength = runHandler.getRunLength(run)
     
         if "btnStart" == ctx.triggered_id and disabled:
             disabled = False 
@@ -370,10 +422,10 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     intervalValue = currValue
     
     if restrictions != None:
-        newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
-        info = getSolutionDetails(runname, currValue)
+        newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue)
+        info = getSolutionDetails(run, runname, currValue)
     
-    return solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
