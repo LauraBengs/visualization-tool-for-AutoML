@@ -5,6 +5,11 @@ from dash import Dash, html, Input, Output, callback, State, dcc, ctx
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 
+#color names
+colMain = '#353A47'
+colSecond = '#8A8D91'
+colThird = '#e4e5eb'
+
 #app = Dash(__name__)
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -102,11 +107,20 @@ max = 0
 min = 0
 
 app.layout = html.Div([
+    dbc.Row([dbc.Col(html.H3("Visualisation tool for AutoML", style={'color': colThird})),
+             dbc.Col(html.Button('?', id='btnHelp', n_clicks=0, style = {'margin' : '10px',
+                                                                         'padding':'10px 20px',
+                                                                         'background-color':colThird, 
+                                                                         'color':colMain, 
+                                                                         'border':'none', 
+                                                                         'border-radius':'5px'}), width=1)
+             ], style={'backgroundColor': colMain}),
     dbc.Row([
         dbc.Col([
             dbc.Row([
-                html.H3("Visualisation configurator"),
-                    html.Div([html.H4("Choose run"),
+                html.H4("Configurator"),
+                html.Hr(style={'borderColor':colMain}),
+                    html.Div([html.H5("Select run"),
                         dcc.Dropdown(id="runSelector", 
                             options=[
                                 {"label": "Show searchspace", "value": "searchspace"},
@@ -125,16 +139,32 @@ app.layout = html.Div([
                                 ],
                             value= "searchspace",
                             clearable=False)]),
-                    html.H4("Restriction"),
+                    html.H5("Restriction"),
                     dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
                         
-                html.H3("Comment"),
+                html.H4("Comment"),
+                html.Hr(style={'borderColor':colMain}),
                 html.Div(id='config')
-            ], style={'backgroundColor':'#999999'})
-        ]),
+            ], style={'backgroundColor':colSecond})
+        ], width=2),
         
-        dbc.Col(html.Div([
+        dbc.Col([
             dbc.Row([
+                html.H4("Directed acyclic graph (Dag)"),
+                html.Hr(style={'borderColor':colMain})
+            ]),
+            dbc.Row([
+                dbc.Col(cyto.Cytoscape(
+                    id='dag',
+                    layout={'name': 'preset'},
+                    style={'width': '100%', 'height': '400px'},
+                    elements=dataPoints,
+                    stylesheet=style,
+                    responsive=True
+                )),
+                dbc.Col()
+            ]),
+                dbc.Row([
                 dbc.Col(dbc.Button('|◁', id='btnMin', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=1),
                 dbc.Col(dbc.Button('←', id='btnBack', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
                 dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=1),
@@ -145,22 +175,11 @@ app.layout = html.Div([
                            marks=None,
                            tooltip={"placement": "bottom", "always_visible": True},
                            id="slider"
-            )), style = {'margin' : '20px'})], style={'backgroundColor':'#878787'}),
-            html.Div(id="temp"),
-            cyto.Cytoscape(
-                id='dag',
-                layout={'name': 'preset'},
-                style={'width': '100%', 'height': '400px'},
-                elements=dataPoints,
-                stylesheet=style,
-                responsive=True
-            )]),width=7),
-        
-        dbc.Col(dbc.Button('?', id='btnHelp', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width':'40px'}), width=1)    
+            )), style = {'margin' : '20px'})], style={'backgroundColor':'#878787'})],width=10),
     ]),
     dbc.Row([
                 html.H4("Details about solution candidate"),
-                html.Div(id='solution')
+                html.Div(id='solution', style={'white-space':'pre'})
             ], style={'backgroundColor':'#878787'}),
     
     dbc.Modal(
