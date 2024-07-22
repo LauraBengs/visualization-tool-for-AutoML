@@ -118,9 +118,9 @@ app.layout = html.Div([
     dbc.Row([
         dbc.Col([
             dbc.Row([
-                html.H4("Configurator"),
+                html.H4("Run"),
                 html.Hr(style={'borderColor':colMain}),
-                    html.Div([html.H5("Select run"),
+                html.Div([html.H5("Select run"),
                         dcc.Dropdown(id="runSelector", 
                             options=[
                                 {"label": "Show searchspace", "value": "searchspace"},
@@ -139,8 +139,12 @@ app.layout = html.Div([
                                 ],
                             value= "searchspace",
                             clearable=False)]),
-                    html.H5("Restriction"),
-                    dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
+                html.H5("Upload run"),
+                html.H4("Restrictions"),
+                html.Hr(style={'borderColor':colMain}),
+                html.H5("Performance"),
+                dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
+                html.Div("Only visualise solutions with a performance greater or equal to this value."),
                         
                 html.H4("Comment"),
                 html.Hr(style={'borderColor':colMain}),
