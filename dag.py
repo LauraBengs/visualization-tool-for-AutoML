@@ -125,15 +125,9 @@ app.layout = html.Div([
                                 ],
                             value= "searchspace",
                             clearable=False)]),
-                    html.Div([html.H4("Restrictions"),
-                        dcc.Dropdown(id="runRestrictions", 
-                            options=[
-                                {"label": "Show everything", "value": "all"},
-                                {"label": "Performance >= 0.33", "value": "0.33"},
-                                {"label": "Performance >= 0.66", "value": "0.66"},
-                                {"label": "Performance > 0.9", "value": "0.9"}],
-                            value= "all",
-                            clearable=False)]),
+                    html.H4("Restriction"),
+                    dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
+                        
                 html.H3("Comment"),
                 html.Div(id='config')
             ], style={'backgroundColor':'#999999'})
@@ -206,7 +200,7 @@ def toggle_modal(n, data, is_open):
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
-def showSearchrun(stylesheet, runname, restrictions, length):
+def showSearchrun(stylesheet, runname, restrictions, length):    
     if runname == "searchspace":
         stylesheet = [
             {'selector': 'node','style': {'content': 'data(label)'}},
@@ -234,7 +228,7 @@ def showSearchrun(stylesheet, runname, restrictions, length):
         opacity = "0"
         if solPerformance == None:
             color = ""
-            if restrictions == "all":
+            if restrictions == 0:
                 opacity = "1"
         else:
             solPerformance = float(solPerformance)
@@ -243,7 +237,7 @@ def showSearchrun(stylesheet, runname, restrictions, length):
             elif solPerformance <= 0.9: color = "red"
             else: color = "darkred"
             
-            if (restrictions == "all") or (restrictions == "0.66" and solPerformance >= 0.66) or (restrictions == "0.33" and solPerformance >= 0.33) or (restrictions == "0.9" and solPerformance > 0.9):
+            if solPerformance >= restrictions:
                 opacity = "1"
         
         for elem in solComponents:
@@ -296,55 +290,62 @@ def dag(btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, in
     edges = {}
     nodes = {}
     newStyle = style.copy()
+    info = ""
+    runLength = 0
     
-    if runname == "searchspace":
-        runLength = 0
-    else:
+    if restrictions == None:
+        msg = "Please enter a valid restriction (value between 0 and 1)"
+        return info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    
+    if runname != "searchspace":
         runLength = runHandler.getRunLength(runname, searchspace)
     
-    if "btnStart" == ctx.triggered_id and disabled:
-        disabled = False 
-        btnStartSymbol = "||"
-    elif "btnStart" == ctx.triggered_id and not disabled:
-        disabled = True
-        btnStartSymbol = "▷"
-    elif "btnNext" == ctx.triggered_id and currValue < max: 
-        currValue += 1
-        intervalValue = currValue
-        disabled = True
-        btnStartSymbol = "▷"
-    elif "btnBack" == ctx.triggered_id and currValue > min: 
-        currValue -= 1
-        intervalValue = currValue
-        disabled = True
-        btnStartSymbol = "▷"
-    elif "btnMin" == ctx.triggered_id or max != runLength: 
-        currValue = min
-        intervalValue = currValue
-        disabled = True
-        btnStartSymbol = "▷"
-    elif "btnMax" == ctx.triggered_id: 
-        currValue = max
-        intervalValue = currValue
-        disabled = True
-        btnStartSymbol = "▷"
+        if "btnStart" == ctx.triggered_id and disabled:
+            disabled = False 
+            btnStartSymbol = "||"
+        elif "btnStart" == ctx.triggered_id and not disabled:
+            disabled = True
+            btnStartSymbol = "▷"
+        elif "btnNext" == ctx.triggered_id and currValue < max: 
+            currValue += 1
+            intervalValue = currValue
+            disabled = True
+            btnStartSymbol = "▷"
+        elif "btnBack" == ctx.triggered_id and currValue > min: 
+            currValue -= 1
+            intervalValue = currValue
+            disabled = True
+            btnStartSymbol = "▷"
+        elif "btnMin" == ctx.triggered_id or max != runLength: 
+            currValue = min
+            intervalValue = currValue
+            disabled = True
+            btnStartSymbol = "▷"
+        elif "btnMax" == ctx.triggered_id: 
+            currValue = max
+            intervalValue = currValue
+            disabled = True
+            btnStartSymbol = "▷"
+        
+        if not disabled and intervalValue <= max:
+            currValue = intervalValue
+        elif not disabled and intervalValue > max:
+            disabled = True
     
-    if not disabled and intervalValue <= max:
-        currValue = intervalValue
-    elif not disabled and intervalValue > max:
-        disabled = True
-    
-    if restrictions == "all": 
+    if restrictions == 0: 
         msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue)
     else: 
-        msg = "This is the dag for \"" + runname +"\" with restrictions \"" + restrictions +"\" at timestep" + str(currValue)
+        msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue)
     
     if runname == "searchspace":
         msg = "This is the dag showing all components and possible connections for our searchspace"
     
-    newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
+    
     intervalValue = currValue
-    info = getSolutionDetails(runname, currValue)
+    
+    if restrictions != None:
+        newStyle = showSearchrun(newStyle, runname, restrictions, currValue)
+        info = getSolutionDetails(runname, currValue)
     
     return info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
