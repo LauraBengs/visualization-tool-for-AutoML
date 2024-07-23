@@ -204,7 +204,7 @@ app.layout = html.Div([
                     html.Div(id='solutionWarning', style={'white-space':'pre', 'background-color':colWarning}),
                     html.H5(id='solutionHeader'),
                     html.Div(id='solution', style={'white-space':'pre'}),
-                    html.Details([html.Summary("Click here for a detailed evaluation report and exceptions"), html.Div(id='solutionMoreDetails')], style={'white-space':'pre'})
+                    html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')], style={'white-space':'pre'})
                 ], width=7)
             ])
         ],width=10),
@@ -318,20 +318,20 @@ def showSearchrun(stylesheet, run, runname, restrictions, length):
 
 def getSolutionDetails(run, runname, length):
     warning = ""
-    infoDetails = "An evaluation report as well as exceptions will be provided here."
-    info = "Please click start, skip to the next timstep or drag the slider to get infos about a specifc solution candidate."
+    exceptions = "Infos about exceptions will be provided here."
+    info = "Please click start, skip to the next timstep or drag the slider to get infos about a specific solution candidate."
     if runname == "searchspace":
         info = "Infos about the solution candidate at timestep x will be provided here."
     if length != 0 and runname != "searchspace":
-        isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(run, length)
+        isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
         info = "Timestamp: " + str(timestamp) + "Components: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) 
-        infoDetails = "Exceptions: " + str(exceptions)
+        exceptions = str(solExceptions)
         if not isValid:
             warning = "Warning: This solution is not valid according to our definition and is therefore not being visualised in the dag.\n(The solution probably consists of two or more components belonging to the same category)."
-    return info, infoDetails, warning
+    return info, exceptions, warning
         
 
-@callback(Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('solutionMoreDetails', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -341,7 +341,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     nodes = {}
     newStyle = style.copy()
     info = ""
-    infoMoreDetails = ""
+    exceptions = ""
     solutionHeader = "Details about solution candidate at timestep "
     runLength = 0
     global run
@@ -364,7 +364,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
             runname = uploadName
         else:
             uploadError = "Please upload a .json file"
-            return warning, uploadError, upload, solutionHeader, info, infoMoreDetails, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            return warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname) 
@@ -380,7 +380,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return warning, uploadError, upload, solutionHeader, info, infoMoreDetails, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
         runLength = runHandler.getRunLength(run)
@@ -432,9 +432,9 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions != None:
         newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue)
-        info, infoMoreDetails, warning = getSolutionDetails(run, runname, currValue)
+        info, exceptions, warning = getSolutionDetails(run, runname, currValue)
     
-    return warning, uploadError, upload, solutionHeader, info, infoMoreDetails, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
