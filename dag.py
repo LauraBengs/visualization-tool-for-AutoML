@@ -12,6 +12,8 @@ import io
 colMain = '#353A47'
 colSecond = '#8A8D91'
 colThird = '#e4e5eb'
+colWarning = '#F7ec59'
+colDanger = '#e94f37'
 
 #app = Dash(__name__)
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -128,6 +130,7 @@ app.layout = html.Div([
             dbc.Row([
                 html.H4("Run"),
                 html.Hr(style={'borderColor':colMain}),
+                html.Div("Select a preloaded run or upload a .json file of your searchrun."),
                 html.Div([html.H5("Select run"),
                         dcc.Dropdown(id="runSelector", 
                             options=[
@@ -198,6 +201,7 @@ app.layout = html.Div([
                     ], style={'backgroundColor':colSecond}),
                 ], width=5),
                 dbc.Col([
+                    html.Div(id='solutionWarning', style={'white-space':'pre', 'background-color':colWarning}),
                     html.H5(id='solutionHeader'),
                     html.Div(id='solution', style={'white-space':'pre'})
                 ], width=7)
@@ -312,19 +316,19 @@ def showSearchrun(stylesheet, run, runname, restrictions, length):
     return stylesheet
 
 def getSolutionDetails(run, runname, length):
+    warning = ""
     info = "Please click start, skip to the next timstep or drag the slider to get infos about a specifc solution candidate."
     if runname == "searchspace":
         info = "More infos about the solution candidate at timestep x will be provided here."
     if length != 0 and runname != "searchspace":
         isValid, timestamp, components, parameterValues, performance, exceptions = runHandler.getSolutionDetails(run, length)
-        if isValid:
-            info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
-        else:
-            info = "This solution is not valid according to our definition (The solution probably consists of two or more components belonging to the same category)."
-    return info
+        info = "Timestamp: "+ str(timestamp) +"\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) +"\nExceptions: " + str(exceptions)
+        if not isValid:
+            warning = "Warning: This solution is not valid according to our definition and is therefore not being visualised in the dag.\n(The solution probably consists of two or more components belonging to the same category)."
+    return info, warning
         
 
-@callback(Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -342,6 +346,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     global uploadedRunname
     uploadError = ""
     msg = ""
+    warning = ""
 
     if upload != None:
         if ".json" in uploadName:
@@ -355,7 +360,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
             runname = uploadName
         else:
             uploadError = "Please upload a .json file"
-            return uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            return warning, uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname) 
@@ -371,7 +376,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return warning, uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
         runLength = runHandler.getRunLength(run)
@@ -423,9 +428,9 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions != None:
         newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue)
-        info = getSolutionDetails(run, runname, currValue)
+        info, warning = getSolutionDetails(run, runname, currValue)
     
-    return uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return warning, uploadError, upload, solutionHeader, info, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
