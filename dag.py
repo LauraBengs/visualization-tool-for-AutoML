@@ -168,10 +168,7 @@ app.layout = html.Div([
                 html.Hr(style={'borderColor':colMain}),
                 html.H5("Performance"),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
-                html.Div("Only visualise solutions with a performance greater or equal to this value."),
-                html.H4("Comment"),
-                html.Hr(style={'borderColor':colMain}),
-                html.Div(id='config')
+                html.Div("Only visualise solutions with a performance greater or equal to this value.")
             ], style={'backgroundColor':colSecond})
         ], width=2),
         
@@ -202,7 +199,11 @@ app.layout = html.Div([
                 ], width=5),
                 dbc.Col([
                     html.Div(id='solutionWarning', style={'white-space':'pre', 'background-color':colWarning}),
+                    html.H5("Overview"),
+                    html.Hr(style={'borderColor':colMain}),
+                    html.Div(id='config'),
                     html.H5(id='solutionHeader'),
+                    html.Hr(style={'borderColor':colMain}),
                     html.Div(id='solution', style={'white-space':'pre'}),
                     html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')], style={'white-space':'pre'})
                 ], width=7)
@@ -351,6 +352,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     uploadError = ""
     msg = ""
     warning = ""
+    measure = None
 
     if upload != None:
         if ".json" in uploadName:
@@ -422,10 +424,17 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     else: 
         msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue)
     
+    if runname != "searchspace":
+        measure = run.iat[0,6]
+        if measure == None:
+            msg += "\nThere is no info available what measure we are optimising for. We assume maximisation of the performance value."
+        else:
+            msg += "\nIn this searchrun we are optimising for \"" + str(measure) + "\". Therefore we want to maximise the performance value."
+
     solutionHeader += str(currValue)
     
     if runname == "searchspace":
-        msg = "This is the dag showing all components and possible connections for our searchspace"
+        msg = "This is the dag showing all components and possible connections for our searchspace."
         solutionHeader = "Details about solution candidate at timestep x"
 
     intervalValue = currValue

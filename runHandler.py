@@ -13,6 +13,7 @@ def getRunAsDF(data, searchspace):
     performance = []
     exceptions = []
     valid = []
+    measure = []
     
     for element in data:
         elemTimestamp = getTimestamp(element)
@@ -26,13 +27,16 @@ def getRunAsDF(data, searchspace):
         exceptions.append(elementException)
         isValid = isSolutionValid(elemComponents, searchspace)
         valid.append(isValid)
+        elementMeasure = getMeasure(element)
+        measure.append(elementMeasure)
     
     pandaData = {"timestamp": timestamps, 
                  "components": components,
                  "parameterValues": parameterValues,
                  "performance": performance,
                  "exceptions": exceptions,
-                 "valid": valid}
+                 "valid": valid,
+                 "measure": measure}
     
     run = pd.DataFrame(pandaData)
     return run
@@ -105,6 +109,9 @@ def getPerformanceValue(element):
 def getException(element):
     return element.get('exception')
 
+def getMeasure(element):
+    return element.get('measure')
+
 def getAllComponentSolutions(run):
     solutions = run["components"].to_numpy()
     return solutions
@@ -162,14 +169,15 @@ def getSolutionDetails(run, timestep):
     return isValid, timestamp, components, parameterValues, performance, exceptions
 
 ######################## This part can be deleted, i just tested a few things and used the code for debugging #####################################
-#runname = 'runs/best_first_747_4h.json'
-#runname = 'runs/bohb_eval_407.json'
-#runname = 'runs/random_eval_138.json'
-#run = getRunAsDF(runname, searchspace)
-#printSearchrun(runname)
-#print(run)
-#print(getRunLength(run))
-#run.to_excel("table.xlsx")
-#comp = getAllComponentSolutions(run)
-#print(comp)
-#print(getPerformances(run))
+def test():
+    import searchSpaceHandler
+    searchspace = searchSpaceHandler.getSearchSpaceAsDF()
+    runname = "runs/bohb_eval_407.json"
+    #runname = "runs/best_first_747_4h.json"
+    jsonFile = open(runname) 
+    convertedFile = json.load(jsonFile)
+    data = convertedFile[2].get('data')
+    jsonFile.close()
+    run = getRunAsDF(data, searchspace)
+    measure = run.iat[0,6]
+    print("Measure:" + str(measure))
