@@ -466,6 +466,8 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
         info, exceptions, warning, evaluation = getSolutionDetails(run, runname, currValue)
         if runname != "searchspace":
             plotData = run["performance"]
+            for i in range(currValue, runLength):
+                plotData = plotData.drop(i)
             plotData.replace(to_replace=[None], value=0, inplace=True)
             plotData = plotData.apply(lambda x: float(x))
             plotData = plotData.cummax()
