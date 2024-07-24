@@ -7,6 +7,9 @@ import dash_bootstrap_components as dbc
 import json 
 import base64
 import io
+import plotly.express as px
+import numpy as np
+import pandas
 
 #color names
 colMain = '#353A47'
@@ -208,6 +211,11 @@ app.layout = html.Div([
                     html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')], style={'white-space':'pre-wrap'}),
                     html.Details([html.Summary("Click here for a detailed evaluation report"), html.Div(id='evalReport')], style={'white-space':'pre-wrap'})
                 ], width=7)
+            ]),
+            dbc.Row([
+                html.H4("Anytime performance plot"),
+                html.Hr(style={'borderColor':colMain}),
+                dcc.Graph(id='anytimePlot', figure=px.scatter())
             ])
         ],width=10),
     ]),
@@ -344,7 +352,7 @@ def getSolutionDetails(run, runname, length):
     return info, exceptions, warning, evaluation
         
 
-@callback(Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -366,6 +374,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     warning = ""
     measure = None
     evaluation = ""
+    anytimePlot = px.scatter()
 
     if upload != None:
         if ".json" in uploadName:
@@ -379,7 +388,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
             runname = uploadName
         else:
             uploadError = "Please upload a .json file"
-            return evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            return anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname) 
@@ -395,7 +404,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
         runLength = runHandler.getRunLength(run)
@@ -455,8 +464,14 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     if restrictions != None:
         newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue)
         info, exceptions, warning, evaluation = getSolutionDetails(run, runname, currValue)
+        if runname != "searchspace":
+            plotData = run["performance"]
+            plotData.replace(to_replace=[None], value=0, inplace=True)
+            plotData = plotData.apply(lambda x: float(x))
+            plotData = plotData.cummax()
+            anytimePlot = px.line(plotData, y="performance", line_shape='hv')
     
-    return evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
