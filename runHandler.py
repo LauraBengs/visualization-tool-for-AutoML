@@ -6,8 +6,6 @@ import pandas as pd
 import numpy
 import componentHandler
 
-pd.set_option('display.max_columns', 500)
-
 def getRunAsDF(data, searchspace):
     timestamps = []
     components = []
@@ -113,41 +111,41 @@ def getRunAsDF(data, searchspace):
                  "valid": valid,
                  "measure": measure,
                  "evalReportExists": evalReportExists,
-                 "evalTime_nList": evalTime_nList,
-                 "FMicroAvg_nList": FMicroAvg_nList,
-                 "ExactMatch_nList": ExactMatch_nList,
-                 "FMacroAvgD_nList": FMacroAvgD_nList,
-                 "FMacroAvgL_nList": FMacroAvgL_nList,
-                 "evalTime_maxList": evalTime_maxList,
-                 "evalTime_minList": evalTime_minList,
-                 "FMicroAvg_maxList": FMicroAvg_maxList,
-                 "FMicroAvg_minList": FMicroAvg_minList,
-                 "HammingLoss_nList": HammingLoss_nList,
-                 "evalTime_meanList": evalTime_meanList,
-                 "ExactMatch_maxList": ExactMatch_maxList,
-                 "ExactMatch_minList": ExactMatch_minList,
-                 "FMacroAvgD_maxList": FMacroAvgD_maxList,
-                 "FMacroAvgD_minList": FMacroAvgD_minList,
-                 "FMacroAvgL_maxList": FMacroAvgL_maxList,
-                 "FMacroAvgL_minList": FMacroAvgL_minList,
-                 "FMicroAvg_meanList": FMicroAvg_meanList,
-                 "JaccardIndex_nList": JaccardIndex_nList,
-                 "ExactMatch_meanList": ExactMatch_meanList,
-                 "FMacroAvgD_meanList": FMacroAvgD_meanList,
-                 "FMacroAvgL_meanList": FMacroAvgL_meanList,
-                 "HammingLoss_maxList": HammingLoss_maxList,
-                 "HammingLoss_minList": HammingLoss_minList,
-                 "evalTime_medianList": evalTime_medianList,
-                 "FMicroAvg_medianList": FMicroAvg_medianList,
-                 "HammingLoss_meanList": HammingLoss_meanList,
-                 "JaccardIndex_maxList": JaccardIndex_maxList,
-                 "JaccardIndex_minList": JaccardIndex_minList,
-                 "ExactMatch_medianList": ExactMatch_medianList,
-                 "FMacroAvgD_medianList": FMacroAvgD_medianList,
-                 "FMacroAvgL_medianList": FMacroAvgL_medianList,
-                 "JaccardIndex_meanList": JaccardIndex_meanList,
-                 "HammingLoss_medianList": HammingLoss_medianList,
-                 "JaccardIndex_mediaList": JaccardIndex_medianList}
+                 "evalTime_n": evalTime_nList,
+                 "FMicroAvg_n": FMicroAvg_nList,
+                 "ExactMatch_n": ExactMatch_nList,
+                 "FMacroAvgD_n": FMacroAvgD_nList,
+                 "FMacroAvgL_n": FMacroAvgL_nList,
+                 "evalTime_max": evalTime_maxList,
+                 "evalTime_min": evalTime_minList,
+                 "FMicroAvg_max": FMicroAvg_maxList,
+                 "FMicroAvg_min": FMicroAvg_minList,
+                 "HammingLoss_n": HammingLoss_nList,
+                 "evalTime_mean": evalTime_meanList,
+                 "ExactMatch_max": ExactMatch_maxList,
+                 "ExactMatch_min": ExactMatch_minList,
+                 "FMacroAvgD_max": FMacroAvgD_maxList,
+                 "FMacroAvgD_min": FMacroAvgD_minList,
+                 "FMacroAvgL_max": FMacroAvgL_maxList,
+                 "FMacroAvgL_min": FMacroAvgL_minList,
+                 "FMicroAvg_mean": FMicroAvg_meanList,
+                 "JaccardIndex_n": JaccardIndex_nList,
+                 "ExactMatch_mean": ExactMatch_meanList,
+                 "FMacroAvgD_mean": FMacroAvgD_meanList,
+                 "FMacroAvgL_mean": FMacroAvgL_meanList,
+                 "HammingLoss_max": HammingLoss_maxList,
+                 "HammingLoss_min": HammingLoss_minList,
+                 "evalTime_median": evalTime_medianList,
+                 "FMicroAvg_median": FMicroAvg_medianList,
+                 "HammingLoss_mean": HammingLoss_meanList,
+                 "JaccardIndex_max": JaccardIndex_maxList,
+                 "JaccardIndex_min": JaccardIndex_minList,
+                 "ExactMatch_median": ExactMatch_medianList,
+                 "FMacroAvgD_median": FMacroAvgD_medianList,
+                 "FMacroAvgL_median": FMacroAvgL_medianList,
+                 "JaccardIndex_mean": JaccardIndex_meanList,
+                 "HammingLoss_median": HammingLoss_medianList,
+                 "JaccardIndex_median": JaccardIndex_medianList}
                     
     run = pd.DataFrame(pandaData)
     return run
@@ -345,7 +343,6 @@ def getSolutionDetails(run, timestep):
     allPerformances = getPerformances(run)
     allExceptions = getAllExceptions(run)
     
-    
     if timestep != 0:
         isValid = valids[timestep-1]
         timestamp = allTimestamps[timestep-1]
@@ -353,9 +350,87 @@ def getSolutionDetails(run, timestep):
         parameterValues = allParameterValues[timestep-1]
         performance = allPerformances[timestep-1]
         exceptions = allExceptions[timestep-1]
-        
     
     return isValid, timestamp, components, parameterValues, performance, exceptions
+
+def getDetailedEvaluationReport(run, timestep):
+    evalExists = False
+    evalTime_n = None
+    FMicroAvg_n = None
+    ExactMatch_n = None
+    FMacroAvgD_n = None
+    FMacroAvgL_n = None
+    evalTime_max = None
+    evalTime_min = None
+    FMicroAvg_max = None
+    FMicroAvg_min = None
+    HammingLoss_n = None
+    evalTime_mean = None
+    ExactMatch_max = None
+    ExactMatch_min = None
+    FMacroAvgD_max = None
+    FMacroAvgD_min = None
+    FMacroAvgL_max = None
+    FMacroAvgL_min = None
+    FMicroAvg_mean = None
+    JaccardIndex_n = None
+    ExactMatch_mean = None
+    FMacroAvgD_mean = None
+    FMacroAvgL_mean = None
+    HammingLoss_max = None
+    HammingLoss_min = None
+    evalTime_median = None
+    FMicroAvg_median = None
+    HammingLoss_mean = None
+    JaccardIndex_max = None
+    JaccardIndex_min = None
+    ExactMatch_median = None
+    FMacroAvgD_median = None
+    FMacroAvgL_median = None
+    JaccardIndex_mean = None
+    HammingLoss_median = None
+    JaccardIndex_median = None
+    
+    if timestep != 0:
+        evalExists = run["evalReportExists"][timestep-1]
+        if evalExists:
+            evalTime_n = run["evalTime_n"][timestep-1]
+            FMicroAvg_n = run["FMicroAvg_n"][timestep-1]
+            ExactMatch_n = run["ExactMatch_n"][timestep-1]
+            FMacroAvgD_n = run["FMacroAvgD_n"][timestep-1]
+            FMacroAvgL_n = run["FMacroAvgL_n"][timestep-1]
+            evalTime_max = run["evalTime_max"][timestep-1]
+            evalTime_min = run["evalTime_min"][timestep-1]
+            FMicroAvg_max = run["FMicroAvg_max"][timestep-1]
+            FMicroAvg_min = run["FMicroAvg_min"][timestep-1]
+            HammingLoss_n = run["HammingLoss_n"][timestep-1]
+            evalTime_mean = run["evalTime_mean"][timestep-1]
+            ExactMatch_max = run["ExactMatch_max"][timestep-1]
+            ExactMatch_min = run["ExactMatch_min"][timestep-1]
+            FMacroAvgD_max = run["FMacroAvgD_max"][timestep-1]
+            FMacroAvgD_min = run["FMacroAvgD_min"][timestep-1]
+            FMacroAvgL_max = run["FMacroAvgL_max"][timestep-1]
+            FMacroAvgL_min = run["FMacroAvgL_min"][timestep-1]
+            FMicroAvg_mean = run["FMicroAvg_mean"][timestep-1]
+            JaccardIndex_n = run["JaccardIndex_n"][timestep-1]
+            ExactMatch_mean = run["ExactMatch_mean"][timestep-1]
+            FMacroAvgD_mean = run["FMacroAvgD_mean"][timestep-1]
+            FMacroAvgL_mean = run["FMacroAvgL_mean"][timestep-1]
+            HammingLoss_max = run["HammingLoss_max"][timestep-1]
+            HammingLoss_min = run["HammingLoss_min"][timestep-1]
+            evalTime_median = run["evalTime_median"][timestep-1]
+            FMicroAvg_median = run["FMicroAvg_median"][timestep-1]
+            HammingLoss_mean = run["HammingLoss_mean"][timestep-1]
+            JaccardIndex_max = run["JaccardIndex_max"][timestep-1]
+            JaccardIndex_min = run["JaccardIndex_min"][timestep-1]
+            ExactMatch_median = run["ExactMatch_median"][timestep-1]
+            FMacroAvgD_median = run["FMacroAvgD_median"][timestep-1]
+            FMacroAvgL_median = run["FMacroAvgL_median"][timestep-1]
+            JaccardIndex_mean = run["JaccardIndex_mean"][timestep-1]
+            HammingLoss_median = run["HammingLoss_median"][timestep-1]
+            JaccardIndex_median = run["JaccardIndex_median"][timestep-1]
+        
+    return evalExists, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median
 
 ######################## This part can be deleted, i just tested a few things and used the code for debugging #####################################
 def test():
@@ -370,5 +445,6 @@ def test():
     df = getRunAsDF(data, searchspace)
     print(df)
     #print(getEvalReport(data[2]))
+    getDetailedEvaluationReport(df, 201)
     
-test()
+#test()

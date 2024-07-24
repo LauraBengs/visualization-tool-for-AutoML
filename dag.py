@@ -160,7 +160,7 @@ app.layout = html.Div([
                                'borderStyle': 'dashed',
                                'borderRadius': '5px',
                                'textAlign': 'center',
-                               'white-space':'pre'
+                               'white-space':'pre-wrap'
                             },
                 ),
                 html.Div(id='uploadError'),
@@ -198,14 +198,15 @@ app.layout = html.Div([
                     ], style={'backgroundColor':colSecond}),
                 ], width=5),
                 dbc.Col([
-                    html.Div(id='solutionWarning', style={'white-space':'pre', 'background-color':colWarning}),
+                    html.Div(id='solutionWarning', style={'white-space':'pre-wrap', 'background-color':colWarning}),
                     html.H5("Overview"),
                     html.Hr(style={'borderColor':colMain}),
                     html.Div(id='config'),
                     html.H5(id='solutionHeader'),
                     html.Hr(style={'borderColor':colMain}),
-                    html.Div(id='solution', style={'white-space':'pre'}),
-                    html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')], style={'white-space':'pre'})
+                    html.Div(id='solution', style={'white-space':'pre-wrap'}),
+                    html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')], style={'white-space':'pre-wrap'}),
+                    html.Details([html.Summary("Click here for a detailed evaluation report"), html.Div(id='evalReport')], style={'white-space':'pre-wrap'})
                 ], width=7)
             ])
         ],width=10),
@@ -218,7 +219,7 @@ app.layout = html.Div([
             id="modal",
             scrollable = True,
             is_open=False,
-            style = {'white-space': 'pre'},
+            style = {'white-space': 'pre-wrap'},
             size = "lg"
     ),
     
@@ -320,19 +321,30 @@ def showSearchrun(stylesheet, run, runname, restrictions, length):
 def getSolutionDetails(run, runname, length):
     warning = ""
     exceptions = "Infos about exceptions will be provided here."
+    evaluation = "A detailed evaluation report will be provided here."
     info = "Please click start, skip to the next timstep or drag the slider to get infos about a specific solution candidate."
     if runname == "searchspace":
         info = "Infos about the solution candidate at timestep x will be provided here."
     if length != 0 and runname != "searchspace":
         isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
-        info = "Timestamp: " + str(timestamp) + "Components: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) 
+        info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) 
         exceptions = str(solExceptions)
         if not isValid:
-            warning = "Warning: This solution is not valid according to our definition and is therefore not being visualised in the dag.\n(The solution probably consists of two or more components belonging to the same category)."
-    return info, exceptions, warning
+            warning = "Warning: This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
+        evalExists, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median = runHandler.getDetailedEvaluationReport(run, length)
+        if evalExists:
+            measurements = "Measurements:\n- evalTime_n: " + str(evalTime_n) +"\n- FMicroAvg_n: " + str(FMicroAvg_n) + "\n- ExactMatch_n: " + str(ExactMatch_n) + "\n- FMacroAvgD_n: " + str(FMacroAvgD_n) + "\n- FMacroAvgL_n: " + str(FMacroAvgL_n) + "\n- HammingLoss_n: " + str(HammingLoss_n) + "\n- JaccardIndex_n: " + str(JaccardIndex_n)
+            time = "Times:\n- evalTime_min: " + str(evalTime_min) + "\n- evalTime_max: " + str(evalTime_max) + "\n- evalTime_mean: " + str(evalTime_mean) + "\n- evalTime_median: " + str(evalTime_median)
+            minimisation = "Minimisation:\n- HammingLoss_min: " + str(HammingLoss_min) + "\n- HammingLoss_max: " + str(HammingLoss_max) + "\n- HammingLoss_mean: " + str(HammingLoss_mean) + "\n- HammingLoss_median: " + str(HammingLoss_median)
+            maximisation = "Maximisation:\n- ExactMatch_min: " + str(ExactMatch_min) + "\n- ExactMatch_max: " + str(ExactMatch_max)+ "\n- ExactMatch_mean: " + str(ExactMatch_mean)+ "\n- ExactMatch_median: " + str(ExactMatch_median) + "\n- FMicroAvg_min: " + str(FMicroAvg_min)+ "\n- FMicroAvg_max: " + str(FMicroAvg_max) + "\n- FMicroAvg_mean: " + str(FMicroAvg_mean) + "\n- FMicroAvg_median: " + str(FMicroAvg_median)+ "\n- FMacroAvgD_min: " + str(FMacroAvgD_min)+ "\n- FMacroAvgD_max: " + str(FMacroAvgD_max) + "\n- FMacroAvgD_mean: " + str(FMacroAvgD_mean) + "\n- FMacroAvgD_median: " + str(FMacroAvgD_median)+ "\n- FMacroAvgL_min: " + str(FMacroAvgL_min) + "\n- FMacroAvgL_max: " + str(FMacroAvgL_max) + "\n- FMacroAvgL_mean: " + str(FMacroAvgL_mean)+ "\n- FMacroAvgL_median: " + str(FMacroAvgL_median)+ "\n- JaccardIndex_min: " + str(JaccardIndex_min) + "\n- JaccardIndex_max: " + str(JaccardIndex_max) + "\n- JaccardIndex_mean: " + str(JaccardIndex_mean) + "\n- JaccardIndex_median: " + str(JaccardIndex_median) 
+            evaluation = measurements + "\n\n" + time + "\n\n" + minimisation + "\n\n" + maximisation
+            evaluation = dcc.Markdown(evaluation)
+        else: 
+            evaluation = "There does not exist a detailed evaluation report."
+    return info, exceptions, warning, evaluation
         
 
-@callback(Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -353,6 +365,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     msg = ""
     warning = ""
     measure = None
+    evaluation = ""
 
     if upload != None:
         if ".json" in uploadName:
@@ -366,7 +379,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
             runname = uploadName
         else:
             uploadError = "Please upload a .json file"
-            return warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            return evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname) 
@@ -382,7 +395,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
         runLength = runHandler.getRunLength(run)
@@ -420,9 +433,9 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
             disabled = True
     
     if restrictions == 0: 
-        msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue)
+        msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue) + "."
     else: 
-        msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue)
+        msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue) + "."
     
     if runname != "searchspace":
         measure = run.iat[0,6]
@@ -441,9 +454,9 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions != None:
         newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue)
-        info, exceptions, warning = getSolutionDetails(run, runname, currValue)
+        info, exceptions, warning, evaluation = getSolutionDetails(run, runname, currValue)
     
-    return warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
