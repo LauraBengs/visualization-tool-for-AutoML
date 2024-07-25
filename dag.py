@@ -9,7 +9,9 @@ import base64
 import io
 import plotly.express as px
 import numpy as np
-import pandas
+#import pandas as pd
+
+#pd.set_option('display.max_columns', None)
 
 #color names
 colMain = '#353A47'
@@ -216,6 +218,11 @@ app.layout = html.Div([
                 html.H4("Anytime performance plot"),
                 html.Hr(style={'borderColor':colMain}),
                 dcc.Graph(id='anytimePlot', figure=px.scatter())
+            ]),
+            dbc.Row([
+                html.H4("Parallel coordinate plot"),
+                html.Hr(style={'borderColor':colMain}),
+                dcc.Graph(id='parallelPlot', figure=px.scatter())
             ])
         ],width=10),
     ]),
@@ -350,9 +357,23 @@ def getSolutionDetails(run, runname, length):
         else: 
             evaluation = "There does not exist a detailed evaluation report."
     return info, exceptions, warning, evaluation
-        
 
-@callback(Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+def createPlots(currValue, runLength):
+    anytimePlot = px.scatter()
+    anytimePlotData = run["performance"]
+    for i in range(currValue, runLength):
+        anytimePlotData = anytimePlotData.drop(i)
+    anytimePlotData.replace(to_replace=[None], value=0, inplace=True)
+    anytimePlotData = anytimePlotData.apply(lambda x: float(x))
+    anytimePlotData = anytimePlotData.cummax()
+    anytimePlot = px.line(anytimePlotData, y="performance", line_shape='hv')
+    
+    parallelPlot = px.scatter()
+    #parallelPlotData = run[run.valid == True]
+    #parallelPlot = px.parallel_coordinates(parallelPlotData, dimensions=[])
+    return anytimePlot, parallelPlot
+
+@callback(Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -375,6 +396,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     measure = None
     evaluation = ""
     anytimePlot = px.scatter()
+    parallelPlot = px.scatter()
 
     if upload != None:
         if ".json" in uploadName:
@@ -388,7 +410,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
             runname = uploadName
         else:
             uploadError = "Please upload a .json file"
-            return anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname) 
@@ -404,7 +426,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
         runLength = runHandler.getRunLength(run)
@@ -465,15 +487,9 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
         newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue)
         info, exceptions, warning, evaluation = getSolutionDetails(run, runname, currValue)
         if runname != "searchspace":
-            plotData = run["performance"]
-            for i in range(currValue, runLength):
-                plotData = plotData.drop(i)
-            plotData.replace(to_replace=[None], value=0, inplace=True)
-            plotData = plotData.apply(lambda x: float(x))
-            plotData = plotData.cummax()
-            anytimePlot = px.line(plotData, y="performance", line_shape='hv')
+            anytimePlot, parallelPlot = createPlots(currValue, runLength)
     
-    return anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
