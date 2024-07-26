@@ -35,8 +35,6 @@ def getSearchSpaceAsDF():
             "dependencies": dependencies
             }
     
-    #pd.options.display.max_columns = None
-    #pd.options.display.max_rows = None
     searchSpace = pd.DataFrame(data)
     return searchSpace
     
@@ -68,10 +66,6 @@ def getAllComponentfullNames(searchspace):
 
 def getAllCategories(searchspace):
     return searchspace["category"].to_numpy()
-
-#searchspace = getSearchSpaceAsDF()
-#print(searchspace)
-#printSearchSpace('weka-base.json')
 
 def getComponentInfo(info):
     text = ""
@@ -142,3 +136,8 @@ def getComponentInfo(info):
         text = text + "**Parameters:** This component has no parameters"
     
     return text
+
+def getComponentCategory(componentName, searchspace):
+    row = searchspace[searchspace.name == componentName]
+    category = row['category']
+    return category.iloc[0]

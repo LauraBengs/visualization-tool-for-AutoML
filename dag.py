@@ -221,7 +221,7 @@ app.layout = html.Div([
                 dcc.Graph(id='anytimePlot', figure=px.scatter())
             ]),
             dbc.Row([
-                html.H4("Parallel coordinate plot"),
+                html.H4("Parallel categories plot"),
                 html.Hr(style={'borderColor':colMain}),
                 dcc.Graph(id='parallelPlot', figure=px.scatter())
             ])
@@ -364,8 +364,9 @@ def createPlots(currValue, runLength):
     anytimePlotData = globalAnytimePlotData.drop(index=range(currValue, runLength))
     anytimePlot = px.line(anytimePlotData, y="performance", line_shape='hv')
     parallelPlot = px.scatter()
-    #parallelPlotData = run[run.valid == True]
-    #parallelPlot = px.parallel_coordinates(parallelPlotData, dimensions=[])
+    parallelPlotData = run[run.valid == True]
+    parallelPlotData.replace(to_replace=[None], value="Not used", inplace=True)
+    parallelPlot = px.parallel_categories(parallelPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
     return anytimePlot, parallelPlot
 
 def getPlotData():

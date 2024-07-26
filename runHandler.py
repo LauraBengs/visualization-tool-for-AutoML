@@ -5,10 +5,16 @@ import ast
 import pandas as pd
 import numpy
 import componentHandler
+import searchSpaceHandler
 
 def getRunAsDF(data, searchspace):
     timestamps = []
     components = []
+    kernelList = []
+    baseSLCList = []
+    metaSLCList = []
+    baseMLCList = []
+    metaMLCList = []
     parameterValues = []
     performance = []
     exceptions = []
@@ -63,6 +69,13 @@ def getRunAsDF(data, searchspace):
         exceptions.append(elementException)
         isValid = isSolutionValid(elemComponents, searchspace)
         valid.append(isValid)
+        if isValid:
+            kernel, baseSLC, metaSLC, baseMLC, metaMLC = getComponentsPerCategory(elemComponents, searchspace)
+            kernelList.append(kernel)
+            baseSLCList.append(baseSLC)
+            metaSLCList.append(metaSLC)
+            baseMLCList.append(baseMLC)
+            metaMLCList.append(metaMLC)
         elementMeasure = getMeasure(element)
         measure.append(elementMeasure)
         evalReportExist, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median = getEvalReport(element)
@@ -105,6 +118,11 @@ def getRunAsDF(data, searchspace):
         
     pandaData = {"timestamp": timestamps, 
                  "components": components,
+                 "kernel": kernelList,
+                 "baseSLC": baseSLCList,
+                 "metaSLC": metaSLCList,
+                 "baseMLC": baseMLCList,
+                 "metaMLC": metaMLCList,
                  "parameterValues": parameterValues,
                  "performance": performance,
                  "exceptions": exceptions,
@@ -164,7 +182,6 @@ def printElement(element):
     components, parameterValues = getComponents(element)
     print("components:", components)
     print("parameterValues:", parameterValues)
-    #if len(components) != 2: print(components)
     performance = getPerformanceValue(element)
     print("performance:", performance)
     exception = getException(element)
@@ -197,6 +214,26 @@ def getComponents(element):
         if nextComponent == {} or nextComponent == None: nextComponentExists = False
         else: label = str(nextComponent)[2]
     return componentsList, parameterValues
+
+def getComponentsPerCategory(elemComponents, searchspace):
+    kernel = None
+    baseSLC = None
+    metaSLC = None
+    baseMLC = None
+    metaMLC = None
+    for component in elemComponents:
+        category = searchSpaceHandler.getComponentCategory(component, searchspace)
+        if category == "Kernel":
+            kernel = component
+        elif category == "BaseSLC":
+            baseSLC = component
+        elif category == "MetaSLC":
+            metaSLC = component
+        elif category == "BaseMLC":
+            baseMLC = component
+        elif category == "MetaMLC":
+            metaMLC = component
+    return kernel, baseSLC, metaSLC, baseMLC, metaMLC
 
 def isSolutionValid(componentsList, searchspace):
     valid = True
@@ -431,20 +468,3 @@ def getDetailedEvaluationReport(run, timestep):
             JaccardIndex_median = run["JaccardIndex_median"][timestep-1]
         
     return evalExists, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median
-
-######################## This part can be deleted, i just tested a few things and used the code for debugging #####################################
-def test():
-    import searchSpaceHandler
-    searchspace = searchSpaceHandler.getSearchSpaceAsDF()
-    #runname = "runs/bohb_eval_407.json"
-    runname = "runs/best_first_747_4h.json"
-    jsonFile = open(runname) 
-    convertedFile = json.load(jsonFile)
-    data = convertedFile[2].get('data')
-    jsonFile.close()
-    df = getRunAsDF(data, searchspace)
-    print(df)
-    #print(getEvalReport(data[2]))
-    getDetailedEvaluationReport(df, 201)
-    
-#test()
