@@ -370,12 +370,13 @@ def createPlots(currValue, runLength):
     return anytimePlot, parallelPlot
 
 def getPlotData():
-    anytimePlotData = run[run.valid == True]
+    anytimePlotData = run[run.valid == True].copy()
     anytimePlotData = anytimePlotData["performance"]
     anytimePlotData.replace(to_replace=[None], value=0, inplace=True)
     anytimePlotData = anytimePlotData.apply(lambda x: float(x))
     anytimePlotData = anytimePlotData.cummax()
-    parallelCategoriesPlotData = run[run.valid == True]
+    parallelCategoriesPlotData = run[run.valid == True].copy()
+    parallelCategoriesPlotData = parallelCategoriesPlotData[["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"]]
     parallelCategoriesPlotData.replace(to_replace=[None], value="Not used", inplace=True)
     return anytimePlotData, parallelCategoriesPlotData
     
