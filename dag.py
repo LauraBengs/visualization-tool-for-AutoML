@@ -363,14 +363,15 @@ def getSolutionDetails(run, runname, length):
 
 def createPlots(currValue, runLength):
     anytimePlot = px.scatter()
-    anytimePlotData = globalAnytimePlotData.drop(index=range(currValue, runLength))
-    anytimePlot = px.line(anytimePlotData, y="performance", line_shape='hv')
+    #anytimePlotData = globalAnytimePlotData.drop(index=range(currValue, runLength))
+    anytimePlot = px.line(globalAnytimePlotData, y="performance", line_shape='hv')
     parallelPlot = px.scatter()
     parallelPlot = px.parallel_categories(globalParallelCategoriesPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
     return anytimePlot, parallelPlot
 
 def getPlotData():
-    anytimePlotData = run["performance"]
+    anytimePlotData = run[run.valid == True]
+    anytimePlotData = anytimePlotData["performance"]
     anytimePlotData.replace(to_replace=[None], value=0, inplace=True)
     anytimePlotData = anytimePlotData.apply(lambda x: float(x))
     anytimePlotData = anytimePlotData.cummax()
