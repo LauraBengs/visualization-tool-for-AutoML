@@ -330,10 +330,19 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
                 opacity = "1"
         else:
             solPerformance = float(solPerformance)
-            if solPerformance <= 0.33: color = "yellow"
-            elif solPerformance <= 0.66: color = "orange"
-            elif solPerformance <= 0.9: color = "red"
-            else: color = "darkred"
+            
+            if evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]:
+                #minimisation
+                if solPerformance >= 0.67: color = "lightskyblue"
+                elif solPerformance >= 0.34 : color = "dodgerblue"
+                elif solPerformance >= 0.1: color = "blue"
+                else: color = "darkblue"
+            else:
+                #maximisation
+                if solPerformance <= 0.33: color = "yellow"
+                elif solPerformance <= 0.66: color = "orange"
+                elif solPerformance <= 0.9: color = "red"
+                else: color = "darkred"
             
             if solPerformance >= restrictions:
                 opacity = "1"
