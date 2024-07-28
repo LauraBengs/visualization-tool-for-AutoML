@@ -175,8 +175,40 @@ app.layout = html.Div([
                 html.H4("Restrictions"),
                 html.Hr(style={'borderColor':colMain}),
                 html.H5("Performance"),
+                html.Div("Only visualise solutions with a performance greater or equal to"),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
-                html.Div("Only visualise solutions with a performance greater or equal to this value.")
+                html.H4("Evaluation Measure"),
+                html.Hr(style={'borderColor':colMain}),
+                dcc.Dropdown(id="evalMeasure", 
+                            options=[
+                                {"label": "performance", "value": "performance"},
+                                {"label": "HammingLoss_min", "value": "HammingLoss_min"},
+                                {"label": "HammingLoss_max", "value": "HammingLoss_max"},
+                                {"label": "HammingLoss_mean", "value": "HammingLoss_mean"},
+                                {"label": "HammingLoss_median", "value": "HammingLoss_median"},
+                                {"label": "ExactMatch_min", "value": "ExactMatch_min"},
+                                {"label": "ExactMatch_max", "value": "ExactMatch_max"},
+                                {"label": "ExactMatch_mean", "value": "ExactMatch_mean"},
+                                {"label": "ExactMatch_median", "value": "ExactMatch_median"},
+                                {"label": "FMicroAvg_min", "value": "FMicroAvg_min"},
+                                {"label": "FMicroAvg_max", "value": "FMicroAvg_max"},
+                                {"label": "FMicroAvg_mean", "value": "FMicroAvg_mean"},
+                                {"label": "FMicroAvg_median", "value": "FMicroAvg_median"},
+                                {"label": "FMacroAvgD_min", "value": "FMacroAvgD_min"},
+                                {"label": "FMacroAvgD_max", "value": "FMacroAvgD_max"},
+                                {"label": "FMacroAvgD_mean", "value": "FMacroAvgD_mean"},
+                                {"label": "FMacroAvgD_median", "value": "FMacroAvgD_median"},
+                                {"label": "FMacroAvgL_min", "value": "FMacroAvgL_min"},
+                                {"label": "FMacroAvgL_max", "value": "FMacroAvgL_max"},
+                                {"label": "FMacroAvgL_mean", "value": "FMacroAvgL_mean"},
+                                {"label": "FMacroAvgL_median", "value": "FMacroAvgL_median"},
+                                {"label": "JaccardIndex_min", "value": "JaccardIndex_min"},
+                                {"label": "JaccardIndex_max", "value": "JaccardIndex_max"},
+                                {"label": "JaccardIndex_mean", "value": "JaccardIndex_mean"},
+                                {"label": "JaccardIndex_median", "value": "JaccardIndex_median"},
+                                ],
+                            value= "performance",
+                            clearable=False)
             ], style={'backgroundColor':colSecond})
         ], width=2),
         
@@ -266,7 +298,7 @@ def toggle_modal(n, data, is_open):
         return not is_open, modalHeader, modalText
     return is_open, '', ''
 
-def showSearchrun(stylesheet, run, runname, restrictions, length):    
+def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):    
     if runname == "searchspace":
         stylesheet = [
             {'selector': 'node','style': {'content': 'data(label)'}},
@@ -279,9 +311,9 @@ def showSearchrun(stylesheet, run, runname, restrictions, length):
         return stylesheet
    
     solutions = runHandler.getAllComponentSolutions(run)
-    performances = runHandler.getPerformances(run)
+    performances = run[evalMeasure].to_numpy()
     valids = runHandler.getAllValid(run)
-    
+
     for s in range(0, length):
         solComponents = solutions[s]
         solPerformance = performances[s]
@@ -292,7 +324,7 @@ def showSearchrun(stylesheet, run, runname, restrictions, length):
         
         color = ""
         opacity = "0"
-        if solPerformance == None:
+        if solPerformance == None or pd.isna(solPerformance):
             color = ""
             if restrictions == 0:
                 opacity = "1"
@@ -370,20 +402,22 @@ def createPlots(currValue, runLength):
     return anytimePlot, parallelPlot
 
 def getPlotData():
-    anytimePlotData = run[run.valid == True].copy()
+    anytimePlotData = run.copy()
+    anytimePlotData = anytimePlotData[anytimePlotData.valid == True]
     anytimePlotData = anytimePlotData["performance"]
     anytimePlotData.replace(to_replace=[None], value=0, inplace=True)
     anytimePlotData = anytimePlotData.apply(lambda x: float(x))
     anytimePlotData = anytimePlotData.cummax()
-    parallelCategoriesPlotData = run[run.valid == True].copy()
+    parallelCategoriesPlotData = run.copy()
+    parallelCategoriesPlotData = parallelCategoriesPlotData[parallelCategoriesPlotData.valid == True].copy()
     parallelCategoriesPlotData = parallelCategoriesPlotData[["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"]]
     parallelCategoriesPlotData.replace(to_replace=[None], value="Not used", inplace=True)
     return anytimePlotData, parallelCategoriesPlotData
     
 @callback(Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
-          Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
+          Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
-def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
+def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
     global edges
     global nodes
     edges = {}
@@ -480,7 +514,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
         msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue) + "."
     
     if runname != "searchspace":
-        measure = run.iat[0,6]
+        measure = run.loc[0, "measure"]
         if measure == None:
             msg += "\nThere is no info available what measure we are optimising for. We assume maximisation of the performance value."
         else:
@@ -495,7 +529,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     intervalValue = currValue
     
     if restrictions != None:
-        newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue)
+        newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue, evalMeasure)
         info, exceptions, warning, evaluation = getSolutionDetails(run, runname, currValue)
         if runname != "searchspace":
             anytimePlot, parallelPlot = createPlots(currValue, runLength)
