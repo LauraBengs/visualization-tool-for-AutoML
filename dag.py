@@ -10,6 +10,7 @@ import io
 import plotly.express as px
 import numpy as np
 import pandas as pd
+### for debugging 
 pd.set_option('display.max_columns', None)
 
 #color names
@@ -33,6 +34,7 @@ uploadedFile = False
 uploadedRunname = None
 
 globalAnytimePlotData = None
+globalParallelCategoriesPlotData = None
 
 edges = {}
 nodes = {}
@@ -364,9 +366,7 @@ def createPlots(currValue, runLength):
     anytimePlotData = globalAnytimePlotData.drop(index=range(currValue, runLength))
     anytimePlot = px.line(anytimePlotData, y="performance", line_shape='hv')
     parallelPlot = px.scatter()
-    parallelPlotData = run[run.valid == True]
-    parallelPlotData.replace(to_replace=[None], value="Not used", inplace=True)
-    parallelPlot = px.parallel_categories(parallelPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
+    parallelPlot = px.parallel_categories(globalParallelCategoriesPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
     return anytimePlot, parallelPlot
 
 def getPlotData():
@@ -374,7 +374,9 @@ def getPlotData():
     anytimePlotData.replace(to_replace=[None], value=0, inplace=True)
     anytimePlotData = anytimePlotData.apply(lambda x: float(x))
     anytimePlotData = anytimePlotData.cummax()
-    return anytimePlotData
+    parallelCategoriesPlotData = run[run.valid == True]
+    parallelCategoriesPlotData.replace(to_replace=[None], value="Not used", inplace=True)
+    return anytimePlotData, parallelCategoriesPlotData
     
 @callback(Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
@@ -401,6 +403,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
     anytimePlot = px.scatter()
     parallelPlot = px.scatter()
     global globalAnytimePlotData
+    global globalParallelCategoriesPlotData
 
     if upload != None:
         if ".json" in uploadName:
@@ -412,7 +415,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
             uploadedRunname = uploadName
             uploadedFile = True
             runname = uploadName
-            globalAnytimePlotData = getPlotData()
+            globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
         else:
             uploadError = "Please upload a .json file"
             return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
@@ -426,7 +429,7 @@ def dag(upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currV
         runSelector = runname
         uploadedFile = False
         uploadedRunname = None
-        globalAnytimePlotData = getPlotData()
+        globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
     elif uploadedFile:
         runname = uploadedRunname
     
