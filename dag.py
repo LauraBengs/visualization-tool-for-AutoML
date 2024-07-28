@@ -369,7 +369,7 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
     return stylesheet
 
 def getSolutionDetails(run, runname, length):
-    warning = ""
+    warning = None
     exceptions = "Infos about exceptions will be provided here."
     evaluation = "A detailed evaluation report will be provided here."
     info = "Please click start, skip to the next timstep or drag the slider to get infos about a specific solution candidate."
@@ -433,7 +433,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
     global uploadedRunname
     uploadError = ""
     msg = ""
-    warning = ""
+    warning = None
     measure = None
     evaluation = ""
     anytimePlot = px.scatter()
@@ -508,21 +508,22 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
         elif not disabled and intervalValue > max:
             disabled = True
     
-    if restrictions == 0: 
-        msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue) + "."
-    else: 
-        msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue) + "."
-    
     if runname != "searchspace":
+        if restrictions == 0: 
+            msg = "This is the dag for \"" + runname +"\" with no restrictions at timestep " + str(currValue) + "."
+        else: 
+            msg = "This is the dag for \"" + runname +"\" with restriction \"performance >= " + str(restrictions) +"\" at timestep " + str(currValue) + "."
         measure = run.loc[0, "measure"]
         if measure == None:
             msg += "\nThere is no info available what measure we are optimising for. We assume maximisation of the performance value."
+            if evalMeasure != "performance":
+                warning = "Please be aware that currently " + evalMeasure + " is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
         else:
             msg += "\nIn this searchrun we are optimising for \"" + str(measure) + "\". Therefore we want to maximise the performance value."
-
-    solutionHeader += str(currValue)
-    
-    if runname == "searchspace":
+            if evalMeasure != "performance" and (measure not in evalMeasure):
+                warning = "Please be aware that currently " + evalMeasure + " is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
+        solutionHeader += str(currValue)
+    else:
         msg = "This is the dag showing all components and possible connections for our searchspace."
         solutionHeader = "Details about solution candidate at timestep x"
 
@@ -530,7 +531,9 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
     
     if restrictions != None:
         newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue, evalMeasure)
-        info, exceptions, warning, evaluation = getSolutionDetails(run, runname, currValue)
+        info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, runname, currValue)
+        if warning != None and solutionWarning != None:
+            warning += "\n\n" + solutionWarning
         if runname != "searchspace":
             anytimePlot, parallelPlot = createPlots(currValue, runLength)
     
