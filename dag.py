@@ -125,14 +125,6 @@ max = 0
 min = 0
 
 app.layout = html.Div([
-    dbc.Row([dbc.Col(html.H3("Visualisation tool for AutoML", style={'color': colThird})),
-             dbc.Col(html.Button('?', id='btnHelp', n_clicks=0, style = {'margin' : '10px',
-                                                                         'padding':'10px 20px',
-                                                                         'background-color':colThird, 
-                                                                         'color':colMain, 
-                                                                         'border':'none', 
-                                                                         'border-radius':'5px'}), width=1)
-             ], style={'backgroundColor': colMain}),
     dbc.Row([
         dbc.Col([
             dbc.Row([
@@ -226,16 +218,6 @@ app.layout = html.Div([
                         elements=dataPoints,
                         stylesheet=style,
                         responsive=True),
-                    html.Div([
-                        dcc.Slider(min, max, 1, value=min, marks=None, tooltip={"placement": "bottom", "always_visible": True}, id="slider"),
-                        dbc.Row([
-                            dbc.Col(dbc.Button('|◁', id='btnMin', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2),
-                            dbc.Col(dbc.Button('←', id='btnBack', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
-                            dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
-                            dbc.Col(dbc.Button('→', id='btnNext', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
-                            dbc.Col(dbc.Button('▷|', id='btnMax', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2)
-                        ]),
-                    ], style={'backgroundColor':colSecond}),
                 ], width=5),
                 dbc.Col([
                     html.Div(id='solutionWarning', style={'white-space':'pre-wrap', 'background-color':colWarning}),
@@ -261,6 +243,34 @@ app.layout = html.Div([
             ])
         ],width=10),
     ]),
+    
+    html.Div(
+        dbc.Row([
+            dbc.Col(html.H3("Visualisation tool for AutoML", style={'color': colThird, 'padding': '15px 10px'}), width=4),
+            dbc.Col(html.Button('?', id='btnHelp', n_clicks=0, style = {'margin' : '10px',
+                                                                        'padding':'10px 20px',
+                                                                        'background-color':colThird, 
+                                                                        'color':colMain, 
+                                                                        'border':'none', 
+                                                                        'border-radius':'5px'}), width=1),
+            dbc.Col(html.Div([
+                        dcc.Slider(min, max, 1, value=min, marks=None, tooltip={"placement": "bottom", "always_visible": True}, id="slider"),
+                        dbc.Row([
+                            dbc.Col(dbc.Button('|◁', id='btnMin', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2),
+                            dbc.Col(dbc.Button('←', id='btnBack', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
+                            dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
+                            dbc.Col(dbc.Button('→', id='btnNext', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
+                            dbc.Col(dbc.Button('▷|', id='btnMax', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2)
+                        ]),
+                    ]))
+        ]),
+        style={'position': 'fixed',
+               'bottom': '0',
+               'width': '100%',
+               'backgroundColor': colMain,
+               'zIndex': '1000'}
+    ),
+    
     dbc.Modal(
             [
                 dbc.ModalHeader(id="modal-header"),
