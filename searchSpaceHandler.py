@@ -125,10 +125,10 @@ def getComponentInfo(info):
                 text = text + ", values = "
                 for v in range(0, len(values)):
                     if v == 0:
-                        text = text + "\[" + values[v]
+                        text = text + r"\[" + values[v]
                     else:
                         text = text + ", " + values[v]
-                text = text + "\]"
+                text = text + r"\]"
             comment = componentHandler.getParameterComment(parameters[i])
             if comment != None:
                 text = text + ", comment: " + comment

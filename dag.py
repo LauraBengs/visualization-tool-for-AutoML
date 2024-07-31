@@ -389,7 +389,7 @@ def getSolutionDetails(run, runname, length):
         info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) 
         exceptions = str(solExceptions)
         if not isValid:
-            warning = "Warning: This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
+            warning = "This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
         evalExists, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median = runHandler.getDetailedEvaluationReport(run, length)
         if evalExists:
             measurements = "Measurements:\n- evalTime_n: " + str(evalTime_n) +"\n- FMicroAvg_n: " + str(FMicroAvg_n) + "\n- ExactMatch_n: " + str(ExactMatch_n) + "\n- FMacroAvgD_n: " + str(FMacroAvgD_n) + "\n- FMacroAvgL_n: " + str(FMacroAvgL_n) + "\n- HammingLoss_n: " + str(HammingLoss_n) + "\n- JaccardIndex_n: " + str(JaccardIndex_n)
@@ -526,11 +526,16 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
         if measure == None:
             msg += "\nThere is no info available what measure we are optimising for. We assume maximisation of the performance value."
             if evalMeasure != "performance":
-                warning = "Please be aware that currently " + evalMeasure + " is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
+                warning = "Please be aware that currently \"" + evalMeasure + "\" is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
         else:
             msg += "\nIn this searchrun we are optimising for \"" + str(measure) + "\". Therefore we want to maximise the performance value."
             if evalMeasure != "performance" and (measure not in evalMeasure):
-                warning = "Please be aware that currently " + evalMeasure + " is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
+                warning = "Please be aware that currently \"" + evalMeasure + "\" is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
+        msg += " Currently \"" + evalMeasure + "\" is selected as evaluation measure, hence we want to "
+        if evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]:
+            msg += "minimise."
+        else:
+            msg += "maximise."
         solutionHeader += str(currValue)
     else:
         msg = "This is the dag showing all components and possible connections for our searchspace."
@@ -543,6 +548,8 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
         info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, runname, currValue)
         if warning != None and solutionWarning != None:
             warning += "\n\n" + solutionWarning
+        elif warning == None and solutionWarning != None:
+            warning = solutionWarning
         if runname != "searchspace":
             anytimePlot, parallelPlot = createPlots(currValue, runLength)
     
