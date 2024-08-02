@@ -297,7 +297,7 @@ def getInfosForModal(data):
 def toggle_modal(n, data, is_open):
     if "btnHelp" == ctx.triggered_id:
         modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
-        performance = "##### Performance \n - Given by the colour of a node \n - Yellow: Performance <= 0.33 \n - Orange: Performance <= 0.66 \n - Red: Performance <= 0.66 \n - Darkred: Performance > 0.9 \n - Grey: No performance value available \n"
+        performance = "##### Performance \n - Given by the colour of a node \n - Maximisation: Yellow (<= 0.33), Orange (<= 0.66), Red (<= 0.66), Darkred (> 0.9) \n - Minimisation: blue \n - Grey: No performance value available \n"
         edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times \n"
         filter = "##### Filter \n Solution candidates that contain two or more components from one categorie will not be visualised. \n A corresponding message about why a solution candidate is not being visualised can be found in the details section."
         modalText = dcc.Markdown(performance + edge + filter)
@@ -324,6 +324,14 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
     solutions = runHandler.getAllComponentSolutions(run)
     performances = run[evalMeasure].to_numpy()
     valids = runHandler.getAllValid(run)
+    
+    minimisation = evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]
+    bestSolution = None
+    if minimisation:
+        bestPerformance = 1
+    else: 
+        bestPerformance = 0
+    bestFound = 0
 
     for s in range(length+1):
         solComponents = solutions[s]
@@ -342,7 +350,7 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
         else:
             solPerformance = float(solPerformance)
             
-            if evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]:
+            if minimisation:
                 #minimisation
                 if solPerformance >= 0.67: color = "lightskyblue"
                 elif solPerformance >= 0.34 : color = "dodgerblue"
@@ -371,6 +379,11 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
                 stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity':opacity}})                    
             
         if opacity != "0":
+            if type(solPerformance) == float:
+                if (minimisation and solPerformance < bestPerformance) or (not minimisation and solPerformance > bestPerformance):
+                    bestPerformance = solPerformance
+                    bestSolution = solComponents
+                    bestFound = s
             for i in range(0, len(solComponents)-1):
                 edge = "#"+solComponents[i+1]+"-"+solComponents[i]
                 global edges
@@ -385,7 +398,8 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
                     else:
                         edges.update({edge: newWeight})
                         stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge]), 'target-arrow-shape' : 'triangle',  'curve-style': 'bezier'}})
-            
+         
+    print("Best Solution: ", bestSolution, " with performance: ", bestPerformance, " found at timestep: ", bestFound)   
     return stylesheet
 
 def getSolutionDetails(run, runname, length):
