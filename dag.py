@@ -325,7 +325,7 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
     performances = run[evalMeasure].to_numpy()
     valids = runHandler.getAllValid(run)
 
-    for s in range(0, length):
+    for s in range(length+1):
         solComponents = solutions[s]
         solPerformance = performances[s]
         isValid = valids[s]
@@ -392,11 +392,11 @@ def getSolutionDetails(run, runname, length):
     warning = None
     exceptions = "Infos about exceptions will be provided here."
     evaluation = "A detailed evaluation report will be provided here."
-    info = "Please click start, skip to the next timstep or drag the slider to get infos about a specific solution candidate."
+    info = None
     if runname == "searchspace":
         info = "Infos about the solution candidate at timestep x will be provided here."
-    if length != 0 and runname != "searchspace":
-        isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
+    if runname != "searchspace":
+        isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, (length+1))
         timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
         info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) 
         exceptions = str(solExceptions)
@@ -495,7 +495,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
         return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
-        runLength = runHandler.getRunLength(run)
+        runLength = runHandler.getRunLength(run)-1
     
         if "btnStart" == ctx.triggered_id and disabled:
             disabled = False 
