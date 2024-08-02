@@ -10,7 +10,6 @@ import io
 import plotly.express as px
 import numpy as np
 import pandas as pd
-from datetime import datetime
 ### for debugging 
 #pd.set_option('display.max_columns', None)
 
@@ -21,8 +20,8 @@ colThird = '#e4e5eb'
 colWarning = '#F7ec59'
 colDanger = '#e94f37'
 
-#app = Dash(__name__)
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app.title = "Visualisation tool for AutoML"
 
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 allComponentNames = searchSpaceHandler.getAllComponentNames(searchspace)
@@ -40,6 +39,7 @@ globalParallelCategoriesPlotData = None
 edges = {}
 nodes = {}
 
+#get datapoints for dag
 x = 0
 y = 0
 yK = 0
@@ -263,7 +263,7 @@ app.layout = html.Div([
                             dbc.Col(dbc.Button('→', id='btnNext', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
                             dbc.Col(dbc.Button('▷|', id='btnMax', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2)
                         ]),
-                    ]))
+                    ], id='controls', style={'display':'none'}))
         ]),
         style={'position': 'fixed',
                'bottom': '0',
@@ -435,7 +435,7 @@ def getPlotData():
     parallelCategoriesPlotData.replace(to_replace=[None], value="Not used", inplace=True)
     return anytimePlotData, parallelCategoriesPlotData
     
-@callback(Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -461,6 +461,10 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
     parallelPlot = px.scatter()
     global globalAnytimePlotData
     global globalParallelCategoriesPlotData
+    controlsStyle = {'display': 'block'}
+    
+    if runname == "searchspace":
+        controlsStyle = {'display': 'none'}
 
     if upload != None:
         if ".json" in uploadName:
@@ -475,7 +479,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
             globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
         else:
             uploadError = "Please upload a .json file"
-            return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            return controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname) 
@@ -492,7 +496,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
         runLength = runHandler.getRunLength(run)-1
@@ -565,7 +569,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
         if runname != "searchspace":
             anytimePlot, parallelPlot = createPlots(currValue, runLength)
     
-    return parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
