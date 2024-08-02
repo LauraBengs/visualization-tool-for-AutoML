@@ -10,8 +10,9 @@ import io
 import plotly.express as px
 import numpy as np
 import pandas as pd
+from datetime import datetime
 ### for debugging 
-pd.set_option('display.max_columns', None)
+#pd.set_option('display.max_columns', None)
 
 #color names
 colMain = '#353A47'
@@ -396,6 +397,7 @@ def getSolutionDetails(run, runname, length):
         info = "Infos about the solution candidate at timestep x will be provided here."
     if length != 0 and runname != "searchspace":
         isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
+        timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
         info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) 
         exceptions = str(solExceptions)
         if not isValid:
@@ -428,7 +430,7 @@ def getPlotData():
     anytimePlotData = anytimePlotData.apply(lambda x: float(x))
     anytimePlotData = anytimePlotData.cummax()
     parallelCategoriesPlotData = run.copy()
-    parallelCategoriesPlotData = parallelCategoriesPlotData[parallelCategoriesPlotData.valid == True].copy()
+    parallelCategoriesPlotData = parallelCategoriesPlotData[parallelCategoriesPlotData.valid == True]
     parallelCategoriesPlotData = parallelCategoriesPlotData[["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"]]
     parallelCategoriesPlotData.replace(to_replace=[None], value="Not used", inplace=True)
     return anytimePlotData, parallelCategoriesPlotData
