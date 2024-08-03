@@ -222,6 +222,9 @@ app.layout = html.Div([
                 ], width=5),
                 dbc.Col([
                     html.Div(id='solutionWarning', style={'white-space':'pre-wrap', 'background-color':colWarning}),
+                    html.H5(id='bestSolutionHeader'),
+                    html.Hr(style={'borderColor':colMain}),
+                    html.Div(id='bestSolution', style={'white-space':'pre-wrap'}),
                     html.H5("Overview"),
                     html.Hr(style={'borderColor':colMain}),
                     html.Div(id='config'),
@@ -319,7 +322,7 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
             {'selector': '.BaseMLC', 'style': { 'background-color': '#A63446'}},
             {'selector': '.MetaMLC', 'style': { 'background-color': '#D89A9E'}},
             {'selector':'edge', 'style':{'line-color':'#adaaaa'}}]
-        return stylesheet
+        return stylesheet, None, 0, 0
    
     solutions = runHandler.getAllComponentSolutions(run)
     performances = run[evalMeasure].to_numpy()
@@ -398,9 +401,8 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
                     else:
                         edges.update({edge: newWeight})
                         stylesheet.append({'selector': edge, 'style':{'opacity':'1', 'width': str(edges[edge]), 'target-arrow-shape' : 'triangle',  'curve-style': 'bezier'}})
-         
-    print("Best Solution: ", bestSolution, " with performance: ", bestPerformance, " found at timestep: ", bestFound)   
-    return stylesheet
+
+    return stylesheet, bestSolution, bestPerformance, bestFound
 
 def getSolutionDetails(run, runname, length):
     warning = None
@@ -412,7 +414,7 @@ def getSolutionDetails(run, runname, length):
     if runname != "searchspace":
         isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, (length+1))
         timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
-        info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nPerformance value: " + str(performance) 
+        info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameter values: " + str(parameterValues) + "\nOptimisation value: " + str(performance) 
         exceptions = str(solExceptions)
         if not isValid:
             warning = "This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
@@ -449,7 +451,7 @@ def getPlotData():
     parallelCategoriesPlotData.replace(to_replace=[None], value="Not used", inplace=True)
     return anytimePlotData, parallelCategoriesPlotData
     
-@callback(Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning','children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -461,6 +463,8 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
     info = ""
     exceptions = ""
     solutionHeader = "Details about solution candidate at timestep "
+    bestSolutionHeader = "Best solution until timestep "
+    bestSolution = "No valid solution has been found yet."
     runLength = 0
     global run
     global runSelector
@@ -493,7 +497,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
             globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
         else:
             uploadError = "Please upload a .json file"
-            return controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname) 
@@ -510,7 +514,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
     
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
-        return controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
     
     if runname != "searchspace":
         runLength = runHandler.getRunLength(run)-1
@@ -567,14 +571,22 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
         else:
             msg += "maximise."
         solutionHeader += str(currValue)
+        bestSolutionHeader += str(currValue) + " using " + evalMeasure + " as evaluation value"
     else:
         msg = "This is the dag showing all components and possible connections for our searchspace."
-        solutionHeader = "Details about solution candidate at timestep x"
+        solutionHeader += "x"
+        bestSolutionHeader += "x"
+        bestSolution = "Infos about the best found solution until timestep x will be provided here."
 
     intervalValue = currValue
     
     if restrictions != None:
-        newStyle = showSearchrun(newStyle, run, runname, restrictions, currValue, evalMeasure)
+        newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, runname, restrictions, currValue, evalMeasure)
+        if bestSol != None:
+            bestSolution = "Found at timestep " + str(bestFound)
+            isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, (bestFound+1))
+            timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
+            bestSolution += "\nTimestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nEvaluation value: " + str(bestPerformance) +"\nOptimisation value: " + str(performance)
         info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, runname, currValue)
         if warning != None and solutionWarning != None:
             warning += "\n\n" + solutionWarning
@@ -583,7 +595,7 @@ def dag(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restri
         if runname != "searchspace":
             anytimePlot, parallelPlot = createPlots(currValue, runLength)
     
-    return controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
 if __name__ == '__main__':
     app.run(debug=True)
