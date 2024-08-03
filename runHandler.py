@@ -1,11 +1,10 @@
-#Python program to get the data of a json file
-
-import json 
+import json
 import ast
 import pandas as pd
 import numpy
 import componentHandler
 import searchSpaceHandler
+
 
 def getRunAsDF(data, searchspace):
     timestamps = []
@@ -56,7 +55,7 @@ def getRunAsDF(data, searchspace):
     JaccardIndex_meanList = []
     HammingLoss_medianList = []
     JaccardIndex_medianList = []
-    
+
     for element in data:
         elemTimestamp = getTimestamp(element)
         timestamps.append(elemTimestamp)
@@ -77,7 +76,8 @@ def getRunAsDF(data, searchspace):
         valid.append(isValid)
         elementMeasure = getMeasure(element)
         measure.append(elementMeasure)
-        evalReportExist, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median = getEvalReport(element)
+        evalReportExist, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median = getEvalReport(
+            element)
         evalReportExists.append(evalReportExist)
         evalTime_nList.append(evalTime_n)
         FMicroAvg_nList.append(FMicroAvg_n)
@@ -114,8 +114,8 @@ def getRunAsDF(data, searchspace):
         JaccardIndex_meanList.append(JaccardIndex_mean)
         HammingLoss_medianList.append(HammingLoss_median)
         JaccardIndex_medianList.append(JaccardIndex_median)
-        
-    pandaData = {"timestamp": timestamps, 
+
+    pandaData = {"timestamp": timestamps,
                  "components": components,
                  "kernel": kernelList,
                  "baseSLC": baseSLCList,
@@ -163,18 +163,20 @@ def getRunAsDF(data, searchspace):
                  "JaccardIndex_mean": JaccardIndex_meanList,
                  "HammingLoss_median": HammingLoss_medianList,
                  "JaccardIndex_median": JaccardIndex_medianList}
-                    
+
     run = pd.DataFrame(pandaData)
     return run
 
+
 def printSearchrun(runname):
-    jsonFile = open(runname) 
-    convertedFile = json.load(jsonFile) #converts data of json file into a ?list?
+    jsonFile = open(runname)
+    convertedFile = json.load(jsonFile)
     data = convertedFile[2].get('data')
     for element in data:
         printElement(element)
         print("--------------------------------------------------------------")
-    
+
+
 def printElement(element):
     timestamp = getTimestamp(element)
     print("timestamp:", timestamp)
@@ -186,23 +188,28 @@ def printElement(element):
     exception = getException(element)
     print("exception:", exception)
 
+
 def getComponents(element):
     componentsList = []
     parameterValues = []
     label = ''
-    if element == None: return componentsList
+    if element == None:
+        return componentsList
     components = element.get('component_instance')
-    componentsDict = ast.literal_eval(components.replace("null", "None")) #converts string to dict
+    componentsDict = ast.literal_eval(components.replace("null", "None"))  # converts string to dict
     elem = componentsDict.get('component').get('name')
     parameter = componentsDict.get('parameterValues')
-    if elem == None or elem == {}: return componentsList
+    if elem == None or elem == {}:
+        return componentsList
     elemCleaned = componentHandler.cleanName(elem)
     componentsList.append(elemCleaned)
     parameterValues.append(parameter)
     nextComponent = componentsDict.get('satisfactionOfRequiredInterfaces')
     nextComponentExists = True
-    if nextComponent == {} or nextComponent == None: nextComponentExists = False
-    else: label = str(nextComponent)[2] #info if we need W or B
+    if nextComponent == {} or nextComponent == None:
+        nextComponentExists = False
+    else:
+        label = str(nextComponent)[2]  # info if we need W or B
     while nextComponentExists == True:
         elem = nextComponent.get(label).get('component').get('name')
         elemCleaned = componentHandler.cleanName(elem)
@@ -210,9 +217,12 @@ def getComponents(element):
         parameter = nextComponent.get(label).get('parameterValues')
         parameterValues.append(parameter)
         nextComponent = nextComponent.get(label).get('satisfactionOfRequiredInterfaces')
-        if nextComponent == {} or nextComponent == None: nextComponentExists = False
-        else: label = str(nextComponent)[2]
+        if nextComponent == {} or nextComponent == None:
+            nextComponentExists = False
+        else:
+            label = str(nextComponent)[2]
     return componentsList, parameterValues
+
 
 def getComponentsPerCategory(elemComponents, searchspace):
     kernel = None
@@ -234,28 +244,34 @@ def getComponentsPerCategory(elemComponents, searchspace):
             metaMLC = component
     return kernel, baseSLC, metaSLC, baseMLC, metaMLC
 
+
 def isSolutionValid(componentsList, searchspace):
     valid = True
     allCategories = []
     for elem in componentsList:
         info = searchspace.loc[searchspace['name'] == elem]
-        category = info.iat[0,0]
+        category = info.iat[0, 0]
         allCategories.append(category)
     if len(set(allCategories)) != len(allCategories):
         valid = False
     return valid
 
+
 def getTimestamp(element):
     return element.get('timestamp_found')
+
 
 def getPerformanceValue(element):
     return element.get('eval_value')
 
+
 def getException(element):
     return element.get('exception')
 
+
 def getMeasure(element):
     return element.get('measure')
+
 
 def getEvalReport(element):
     evalReport = element.get('evaluation_report')
@@ -335,33 +351,41 @@ def getEvalReport(element):
         JaccardIndex_median = evalReportDict.get("JaccardIndex_median")
     return evalReportExist, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median
 
+
 def getAllComponentSolutions(run):
     solutions = run["components"].to_numpy()
     return solutions
+
 
 def getPerformances(run):
     performances = run["performance"].to_numpy()
     return performances
 
+
 def getAllExceptions(run):
     exceptions = run["exceptions"].to_numpy()
     return exceptions
+
 
 def getAllTimestamps(run):
     timestamps = run["timestamp"].to_numpy()
     return timestamps
 
+
 def getAllParameterValues(run):
     parameterValues = run["parameterValues"].to_numpy()
     return parameterValues
+
 
 def getAllValid(run):
     valid = run["valid"].to_numpy()
     return valid
 
+
 def getRunLength(run):
     length = len(run.index)
     return length
+
 
 def getSolutionDetails(run, timestep):
     valids = getAllValid(run)
@@ -372,13 +396,13 @@ def getSolutionDetails(run, timestep):
     parameterValues = None
     performance = None
     exceptions = None
-    
+
     allTimestamps = getAllTimestamps(run)
     allSolutions = getAllComponentSolutions(run)
     allParameterValues = getAllParameterValues(run)
     allPerformances = getPerformances(run)
     allExceptions = getAllExceptions(run)
-    
+
     if timestep != 0:
         isValid = valids[timestep-1]
         timestamp = allTimestamps[timestep-1]
@@ -386,8 +410,9 @@ def getSolutionDetails(run, timestep):
         parameterValues = allParameterValues[timestep-1]
         performance = allPerformances[timestep-1]
         exceptions = allExceptions[timestep-1]
-    
+
     return isValid, timestamp, components, parameterValues, performance, exceptions
+
 
 def getDetailedEvaluationReport(run, timestep):
     evalExists = False
@@ -426,7 +451,7 @@ def getDetailedEvaluationReport(run, timestep):
     JaccardIndex_mean = None
     HammingLoss_median = None
     JaccardIndex_median = None
-    
+
     if timestep != 0:
         evalExists = run["evalReportExists"][timestep-1]
         if evalExists:
@@ -465,5 +490,5 @@ def getDetailedEvaluationReport(run, timestep):
             JaccardIndex_mean = run["JaccardIndex_mean"][timestep-1]
             HammingLoss_median = run["HammingLoss_median"][timestep-1]
             JaccardIndex_median = run["JaccardIndex_median"][timestep-1]
-        
+
     return evalExists, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median

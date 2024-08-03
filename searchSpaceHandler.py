@@ -1,8 +1,9 @@
-import json 
+import json
 import pandas as pd
 import componentHandler
 import numpy
 import requests
+
 
 def printSearchSpace(link):
     repository, components, numComponents = openJsonFileFromGithub(link)
@@ -11,7 +12,8 @@ def printSearchSpace(link):
         print("component", i)
         componentHandler.printComponent(components[i])
         print("---------------------------------------------------")
-        
+
+
 def getSearchSpaceAsDF():
     category = []
     name = []
@@ -20,13 +22,13 @@ def getSearchSpaceAsDF():
     providedInterface = []
     parameters = []
     dependencies = []
-    
+
     searchSpaceLinks = ['https://raw.githubusercontent.com/mwever/tpami-automlc/master/searchspace/weka-base.json', 'https://raw.githubusercontent.com/mwever/tpami-automlc/master/searchspace/weka-meta.json', 'https://raw.githubusercontent.com/mwever/tpami-automlc/master/searchspace/meka-base.json', 'https://raw.githubusercontent.com/mwever/tpami-automlc/master/searchspace/meka-meta.json']
-    
+
     for link in searchSpaceLinks:
         category, name, fullName, requiredInterface, providedInterface, parameters, dependencies = addData(link, category, name, fullName, requiredInterface, providedInterface, parameters, dependencies)
-        
-    data = { "category": category,
+
+    data = {"category": category,
             "name": name,
             "fullName": fullName,
             "requiredInterface": requiredInterface,
@@ -34,17 +36,19 @@ def getSearchSpaceAsDF():
             "parameters": parameters,
             "dependencies": dependencies
             }
-    
+
     searchSpace = pd.DataFrame(data)
     return searchSpace
-    
+
+
 def openJsonFileFromGithub(link):
     file = requests.get(link)
     jsonFile = json.loads(file.text)
     repository = jsonFile.get('repository')
-    components = jsonFile.get('components') #now you have a list of all components
+    components = jsonFile.get('components')
     numComponents = len(components)
     return repository, components, numComponents
+
 
 def addData(link, category, name, fullName, requiredInterface, providedInterface, parameters, dependencies):
     _, components, _ = openJsonFileFromGithub(link)
@@ -58,51 +62,55 @@ def addData(link, category, name, fullName, requiredInterface, providedInterface
         dependencies.append(componentHandler.getDependencies(elem))
     return category, name, fullName, requiredInterface, providedInterface, parameters, dependencies
 
+
 def getAllComponentNames(searchspace):
     return searchspace["name"].to_numpy()
+
 
 def getAllComponentfullNames(searchspace):
     return searchspace["fullName"].to_numpy()
 
+
 def getAllCategories(searchspace):
     return searchspace["category"].to_numpy()
 
+
 def getComponentInfo(info):
     text = ""
-    fullName = info.iat[0,2]
+    fullName = info.iat[0, 2]
     text = text + "**Full name:** " + fullName + "\n"
 
-    category = info.iat[0,0]
+    category = info.iat[0, 0]
     text = text + "**Category:** " + category + "\n"
-    
-    requiredInterface = info.iat[0,3]
+
+    requiredInterface = info.iat[0, 3]
     if type(requiredInterface) is list:
         text = text + "**Required interface(s):** \n"
         for elem in requiredInterface:
-            text = text + "- " + elem +"\n"
-    else: 
+            text = text + "- " + elem + "\n"
+    else:
         text = text + "**Required interface(s):** None\n"
-    
-    providedInterface = info.iat[0,4]
+
+    providedInterface = info.iat[0, 4]
     if type(providedInterface) is list:
         text = text + "\n**Provided interface(s):**\n"
         for elem in providedInterface:
-            text = text + "- " + elem +"\n"
-    else: 
+            text = text + "- " + elem + "\n"
+    else:
         text = text + "\n**Provided interface(s):** None\n"
-    
-    dependencies = info.iat[0,6]
-    if type(dependencies) is list: 
+
+    dependencies = info.iat[0, 6]
+    if type(dependencies) is list:
         text = text + "\n**Dependecies:**" + str(dependencies) + "\n"
     else:
         text = text + "\n**Dependencies:** None\n"
-    
+
     parameters = info.iat[0, 5]
     if type(parameters) is list:
-        text = text + "**Parameter(s):** This component has " +  str(len(parameters)) + " parameters\n"
+        text = text + "**Parameter(s):** This component has " + str(len(parameters)) + " parameters\n"
         for i in range(0, len(parameters)):
             text = text + "\n- Parameter " + str(i+1) + ": name = " + componentHandler.getParameterName(parameters[i])
-            parameterType = componentHandler.getParameterType(parameters[i]) 
+            parameterType = componentHandler.getParameterType(parameters[i])
             if parameterType != None:
                 text = text + ", type = " + parameterType
             default = componentHandler.getParameterDefault(parameters[i])
@@ -116,10 +124,10 @@ def getComponentInfo(info):
                 text = text + ", max = " + str(max)
             minInterval = componentHandler.getParamterMinIntervall(parameters[i])
             if minInterval != None:
-                text = text + ", minInterval = " + str(minInterval) 
+                text = text + ", minInterval = " + str(minInterval)
             refineSplits = componentHandler.getParameterRefineSplits(parameters[i])
             if refineSplits != None:
-                text = text + ", refineSplits = "+ str(refineSplits)
+                text = text + ", refineSplits = " + str(refineSplits)
             values = componentHandler.getParametersValues(parameters[i])
             if values != None:
                 text = text + ", values = "
@@ -134,8 +142,9 @@ def getComponentInfo(info):
                 text = text + ", comment: " + comment
     else:
         text = text + "**Parameters:** This component has no parameters"
-    
+
     return text
+
 
 def getComponentCategory(componentName, searchspace):
     row = searchspace[searchspace.name == componentName]
