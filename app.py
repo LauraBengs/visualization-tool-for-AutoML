@@ -9,15 +9,7 @@ import io
 import plotly.express as px
 import pandas as pd
 
-
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-app.title = "Visualisation tool for AutoML"
-
-searchspace = searchSpaceHandler.getSearchSpaceAsDF()
-allComponentNames = searchSpaceHandler.getAllComponentNames(searchspace)
-allComponentFullNames = searchSpaceHandler.getAllComponentfullNames(searchspace)
-categories = searchSpaceHandler.getAllCategories(searchspace)
-
+#global variables
 runSelector = None
 run = None
 uploadedFile = False
@@ -28,6 +20,15 @@ globalParallelCategoriesPlotData = None
 
 edges = {}
 nodes = {}
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app.title = "Visualisation tool for AutoML"
+
+#initialise dag
+searchspace = searchSpaceHandler.getSearchSpaceAsDF()
+allComponentNames = searchSpaceHandler.getAllComponentNames(searchspace)
+allComponentFullNames = searchSpaceHandler.getAllComponentfullNames(searchspace)
+categories = searchSpaceHandler.getAllCategories(searchspace)
 
 #get datapoints for dag
 x = 0
