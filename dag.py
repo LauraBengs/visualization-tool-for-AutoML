@@ -1,6 +1,5 @@
 import searchSpaceHandler
 import runHandler
-import dash
 from dash import Dash, html, Input, Output, callback, State, dcc, ctx
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
@@ -8,10 +7,7 @@ import json
 import base64
 import io
 import plotly.express as px
-import numpy as np
 import pandas as pd
-### for debugging 
-#pd.set_option('display.max_columns', None)
 
 #color names
 colMain = '#353A47'
@@ -130,7 +126,7 @@ app.layout = html.Div([
         dbc.Col([
             dbc.Row([
                 html.H4("Run"),
-                html.Hr(style={'borderColor':colMain}),
+                html.Hr(),
                 html.Div("Select a preloaded run or upload a .json file of your searchrun."),
                 html.Div([html.H5("Select run"),
                         dcc.Dropdown(id="runSelector", 
@@ -161,17 +157,16 @@ app.layout = html.Div([
                                'borderStyle': 'dashed',
                                'borderRadius': '5px',
                                'textAlign': 'center',
-                               'white-space':'pre-wrap'
                             },
                 ),
                 html.Div(id='uploadError'),
                 html.H4("Restrictions"),
-                html.Hr(style={'borderColor':colMain}),
+                html.Hr(),
                 html.H5("Performance"),
                 html.Div("Only visualise solutions with a performance greater or equal to"),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
                 html.H4("Evaluation Measure"),
-                html.Hr(style={'borderColor':colMain}),
+                html.Hr(),
                 dcc.Dropdown(id="evalMeasure", 
                             options=[
                                 {"label": "performance", "value": "performance"},
@@ -208,7 +203,7 @@ app.layout = html.Div([
         dbc.Col([
             dbc.Row([
                 html.H4("Directed acyclic graph (Dag)"),
-                html.Hr(style={'borderColor':colMain})
+                html.Hr()
             ]),
             dbc.Row([
                 dbc.Col([
@@ -221,28 +216,28 @@ app.layout = html.Div([
                         responsive=True),
                 ], width=5),
                 dbc.Col([
-                    html.Div(id='solutionWarning', style={'white-space':'pre-wrap', 'background-color':colWarning}),
+                    html.Div(id='solutionWarning', style={'background-color':colWarning}),
                     html.H5(id='bestSolutionHeader'),
-                    html.Hr(style={'borderColor':colMain}),
-                    html.Div(id='bestSolution', style={'white-space':'pre-wrap'}),
+                    html.Hr(),
+                    html.Div(id='bestSolution'),
                     html.H5("Overview"),
-                    html.Hr(style={'borderColor':colMain}),
+                    html.Hr(),
                     html.Div(id='config'),
                     html.H5(id='solutionHeader'),
-                    html.Hr(style={'borderColor':colMain}),
-                    html.Div(id='solution', style={'white-space':'pre-wrap'}),
-                    html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')], style={'white-space':'pre-wrap'}),
-                    html.Details([html.Summary("Click here for a detailed evaluation report"), html.Div(id='evalReport')], style={'white-space':'pre-wrap'})
+                    html.Hr(),
+                    html.Div(id='solution'),
+                    html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')]),
+                    html.Details([html.Summary("Click here for a detailed evaluation report"), html.Div(id='evalReport')])
                 ], width=7)
             ]),
             dbc.Row([
                 html.H4("Anytime performance plot"),
-                html.Hr(style={'borderColor':colMain}),
+                html.Hr(),
                 dcc.Graph(id='anytimePlot', figure=px.scatter())
             ]),
             dbc.Row([
                 html.H4("Parallel categories plot"),
-                html.Hr(style={'borderColor':colMain}),
+                html.Hr(),
                 dcc.Graph(id='parallelPlot', figure=px.scatter())
             ])
         ],width=10),
@@ -251,28 +246,19 @@ app.layout = html.Div([
     html.Div(
         dbc.Row([
             dbc.Col(html.H3("Visualisation tool for AutoML", style={'color': colThird, 'padding': '15px 10px'}), width=4),
-            dbc.Col(html.Button('?', id='btnHelp', n_clicks=0, style = {'margin' : '10px',
-                                                                        'padding':'10px 20px',
-                                                                        'background-color':colThird, 
-                                                                        'color':colMain, 
-                                                                        'border':'none', 
-                                                                        'border-radius':'5px'}), width=1),
+            dbc.Col(html.Button('?', id='btnHelp', n_clicks=0), width=1),
             dbc.Col(html.Div([
                         dcc.Slider(min, max, 1, value=min, marks=None, tooltip={"placement": "bottom", "always_visible": True}, id="slider"),
                         dbc.Row([
-                            dbc.Col(dbc.Button('|◁', id='btnMin', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2),
-                            dbc.Col(dbc.Button('←', id='btnBack', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
-                            dbc.Col(dbc.Button('▷', id='btnStart', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
-                            dbc.Col(dbc.Button('→', id='btnNext', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '40px'}), width=2),
-                            dbc.Col(dbc.Button('▷|', id='btnMax', n_clicks=0, color="secondary", style = {'margin' : '10px', 'width': '50px'}), width=2)
+                            dbc.Col(html.Button('|◁', id='btnMin', n_clicks=0), width=2),
+                            dbc.Col(html.Button('←', id='btnBack', n_clicks=0), width=2),
+                            dbc.Col(html.Button('▷', id='btnStart', n_clicks=0), width=2),
+                            dbc.Col(html.Button('→', id='btnNext', n_clicks=0), width=2),
+                            dbc.Col(html.Button('▷|', id='btnMax', n_clicks=0), width=2)
                         ]),
                     ], id='controls', style={'display':'none'}))
         ]),
-        style={'position': 'fixed',
-               'bottom': '0',
-               'width': '100%',
-               'backgroundColor': colMain,
-               'zIndex': '1000'}
+        className='footer'
     ),
     
     dbc.Modal(

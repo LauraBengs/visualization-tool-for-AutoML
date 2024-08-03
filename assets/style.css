@@ -1,0 +1,36 @@
+:root{
+    --main: #353a47;
+    --second: #8a8d91;
+    --third: #e4e5eb;
+    --warning: #f7ec59;
+    --danger: #e94f37;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: black;
+}
+
+Hr {
+    color: var(--main);
+}
+
+Div {
+    white-space: pre-wrap;
+}
+
+Button {
+    margin: 10px;
+    padding: 10px 20px;
+    background-color: var(--third);
+    color: var(--main);
+    border: none;
+    border-radius: 5px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: var(--main);
+    z-index: 1000;
+}
