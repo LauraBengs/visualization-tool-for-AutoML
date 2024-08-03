@@ -9,12 +9,6 @@ import io
 import plotly.express as px
 import pandas as pd
 
-#color names
-colMain = '#353A47'
-colSecond = '#8A8D91'
-colThird = '#e4e5eb'
-colWarning = '#F7ec59'
-colDanger = '#e94f37'
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = "Visualisation tool for AutoML"
@@ -124,7 +118,7 @@ min = 0
 app.layout = html.Div([
     dbc.Row([
         dbc.Col([
-            dbc.Row([
+            dbc.Row(html.Div([
                 html.H4("Run"),
                 html.Hr(),
                 html.Div("Select a preloaded run or upload a .json file of your searchrun."),
@@ -197,7 +191,7 @@ app.layout = html.Div([
                                 ],
                             value= "performance",
                             clearable=False)
-            ], style={'backgroundColor':colSecond})
+            ], className='sidebar'))
         ], width=2),
         
         dbc.Col([
@@ -216,7 +210,7 @@ app.layout = html.Div([
                         responsive=True),
                 ], width=5),
                 dbc.Col([
-                    html.Div(id='solutionWarning', style={'background-color':colWarning}),
+                    html.Div(id='solutionWarning', className='warning'),
                     html.H5(id='bestSolutionHeader'),
                     html.Hr(),
                     html.Div(id='bestSolution'),
@@ -245,7 +239,7 @@ app.layout = html.Div([
     
     html.Div(
         dbc.Row([
-            dbc.Col(html.H3("Visualisation tool for AutoML", style={'color': colThird, 'padding': '15px 10px'}), width=4),
+            dbc.Col(html.H3("Visualisation tool for AutoML", className='headline'), width=4),
             dbc.Col(html.Button('?', id='btnHelp', n_clicks=0), width=1),
             dbc.Col(html.Div([
                         dcc.Slider(min, max, 1, value=min, marks=None, tooltip={"placement": "bottom", "always_visible": True}, id="slider"),

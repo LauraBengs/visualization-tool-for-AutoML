@@ -34,3 +34,16 @@ Button {
     background-color: var(--main);
     z-index: 1000;
 }
+
+.sidebar {
+    background-color: var(--second);
+}
+
+.warning {
+    background-color: var(--warning);
+}
+
+Div .headline {
+    color: var(--third);
+    padding: 15px 10px;
+}
