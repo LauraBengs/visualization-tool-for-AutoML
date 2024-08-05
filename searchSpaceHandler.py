@@ -1,7 +1,6 @@
 import json
 import pandas as pd
 import componentHandler
-import numpy
 import requests
 
 
@@ -32,7 +31,7 @@ def getSearchSpaceAsDF():
             "name": name,
             "fullName": fullName,
             "requiredInterface": requiredInterface,
-            "providedeInterface": providedInterface,
+            "providedInterface": providedInterface,
             "parameters": parameters,
             "dependencies": dependencies
             }
@@ -63,27 +62,15 @@ def addData(link, category, name, fullName, requiredInterface, providedInterface
     return category, name, fullName, requiredInterface, providedInterface, parameters, dependencies
 
 
-def getAllComponentNames(searchspace):
-    return searchspace["name"].to_numpy()
-
-
-def getAllComponentfullNames(searchspace):
-    return searchspace["fullName"].to_numpy()
-
-
-def getAllCategories(searchspace):
-    return searchspace["category"].to_numpy()
-
-
 def getComponentInfo(info):
     text = ""
-    fullName = info.iat[0, 2]
+    fullName = info["fullName"].iloc[0]
     text = text + "**Full name:** " + fullName + "\n"
 
-    category = info.iat[0, 0]
+    category = info["category"].iloc[0]
     text = text + "**Category:** " + category + "\n"
 
-    requiredInterface = info.iat[0, 3]
+    requiredInterface = info["requiredInterface"].iloc[0]
     if type(requiredInterface) is list:
         text = text + "**Required interface(s):** \n"
         for elem in requiredInterface:
@@ -91,7 +78,7 @@ def getComponentInfo(info):
     else:
         text = text + "**Required interface(s):** None\n"
 
-    providedInterface = info.iat[0, 4]
+    providedInterface = info["providedInterface"].iloc[0]
     if type(providedInterface) is list:
         text = text + "\n**Provided interface(s):**\n"
         for elem in providedInterface:
@@ -99,13 +86,13 @@ def getComponentInfo(info):
     else:
         text = text + "\n**Provided interface(s):** None\n"
 
-    dependencies = info.iat[0, 6]
+    dependencies = info["dependencies"].iloc[0]
     if type(dependencies) is list:
         text = text + "\n**Dependecies:**" + str(dependencies) + "\n"
     else:
         text = text + "\n**Dependencies:** None\n"
 
-    parameters = info.iat[0, 5]
+    parameters = info["parameters"].iloc[0]
     if type(parameters) is list:
         text = text + "**Parameter(s):** This component has " + str(len(parameters)) + " parameters\n"
         for i in range(0, len(parameters)):
@@ -148,5 +135,5 @@ def getComponentInfo(info):
 
 def getComponentCategory(componentName, searchspace):
     row = searchspace[searchspace.name == componentName]
-    category = row['category']
-    return category.iloc[0]
+    category = row['category'].iloc[0]
+    return category

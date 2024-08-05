@@ -209,19 +209,18 @@ def toggle_modal(n, data, is_open):
 
 def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
     if runname == "searchspace":
-        stylesheet = [
-            {'selector': 'node', 'style': {'content': 'data(label)'}},
-            {'selector': '.Kernel', 'style': {'background-color': '#EC9F05'}},
-            {'selector': '.BaseSLC', 'style': {'background-color': '#4A6C6F'}},
-            {'selector': '.MetaSLC', 'style': {'background-color': '#A1C084'}},
-            {'selector': '.BaseMLC', 'style': {'background-color': '#A63446'}},
-            {'selector': '.MetaMLC', 'style': {'background-color': '#D89A9E'}},
-            {'selector': 'edge', 'style': {'line-color': '#adaaaa'}}]
+        stylesheet = [{'selector': 'node', 'style': {'content': 'data(label)'}},
+                      {'selector': '.Kernel', 'style': {'background-color': '#EC9F05'}},
+                      {'selector': '.BaseSLC', 'style': {'background-color': '#4A6C6F'}},
+                      {'selector': '.MetaSLC', 'style': {'background-color': '#A1C084'}},
+                      {'selector': '.BaseMLC', 'style': {'background-color': '#A63446'}},
+                      {'selector': '.MetaMLC', 'style': {'background-color': '#D89A9E'}},
+                      {'selector': 'edge', 'style': {'line-color': '#adaaaa'}}]
         return stylesheet, None, 0, 0
 
-    solutions = runHandler.getAllComponentSolutions(run)
+    solutions = run["components"].to_numpy()
     performances = run[evalMeasure].to_numpy()
-    valids = runHandler.getAllValid(run)
+    valids = run["valid"].to_numpy()
 
     minimisation = evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]
     bestSolution = None
@@ -236,7 +235,7 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
         solPerformance = performances[s]
         isValid = valids[s]
 
-        if isValid == False:
+        if not isValid:
             continue
 
         color = ""
@@ -276,11 +275,10 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
             if currentColor == None:
                 nodes[elem] = color
                 node = "[label = \"" + elem + "\"]"
-                stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity': opacity}})
-            elif (currentColor != color and currentColor != "darkred") and (color == "darkred" or color == "red" or (color == "orange" and currentColor != "red") or (color == "yellow" and currentColor == "")):
+            elif (not minimisation and (currentColor != color and currentColor != "darkred") and (color == "darkred" or color == "red" or (color == "orange" and currentColor != "red") or (color == "yellow" and currentColor == ""))) or (minimisation and (currentColor != color and currentColor != "darkblue") and (color == "darkblue" or color == "blue" or (color == "dodgerblue" and currentColor != "blue") or (color == "lightskyblue" and currentColor == ""))):
                 nodes.update({elem: color})
                 node = "[label = \"" + elem + "\"]"
-                stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity': opacity}})
+            stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity': opacity}})
 
         if opacity != "0":
             if type(solPerformance) == float:
@@ -340,8 +338,7 @@ def createPlots(currValue, runLength):
     # anytimePlotData = globalAnytimePlotData.drop(index=range(currValue, runLength))
     anytimePlot = px.line(globalAnytimePlotData, y="performance", line_shape='hv')
     parallelPlot = px.scatter()
-    parallelPlot = px.parallel_categories(globalParallelCategoriesPlotData, dimensions=[
-                                          "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
+    parallelPlot = px.parallel_categories(globalParallelCategoriesPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
     return anytimePlot, parallelPlot
 
 
@@ -394,7 +391,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
 
     if upload != None:
         if ".json" in uploadName:
-            content_type, content_string = upload.split(',')
+            _, content_string = upload.split(',')
             decoded = base64.b64decode(content_string)
             convertedFile = json.load(io.StringIO(decoded.decode('utf-8')))
             data = convertedFile[2].get('data')
@@ -459,11 +456,11 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         elif not disabled and intervalValue > max:
             disabled = True
 
-    if runname != "searchspace":
+        msg = "This is the dag for \"" + runname + "\" with"
         if restrictions == 0:
-            msg = "This is the dag for \"" + runname + "\" with no restrictions at timestep " + str(currValue) + "."
+            msg += " no restrictions at timestep " + str(currValue) + "."
         else:
-            msg = "This is the dag for \"" + runname + "\" with restriction \"performance >= " + str(restrictions) + "\" at timestep " + str(currValue) + "."
+            msg += " restriction \"performance >= " + str(restrictions) + "\" at timestep " + str(currValue) + "."
         measure = run.loc[0, "measure"]
         if measure == None:
             msg += "\nThere is no info available what measure we are optimising for. We assume maximisation of the performance value."
@@ -492,7 +489,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, runname, restrictions, currValue, evalMeasure)
         if bestSol != None:
             bestSolution = "Found at timestep " + str(bestFound)
-            isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, (bestFound+1))
+            _, timestamp, components, parameterValues, performance, _ = runHandler.getSolutionDetails(run, (bestFound+1))
             timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
             bestSolution += "\nTimestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nEvaluation value: " + str(bestPerformance) + "\nOptimisation value: " + str(performance)
         info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, runname, currValue)

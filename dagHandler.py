@@ -1,9 +1,9 @@
 import searchSpaceHandler
 
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
-allComponentNames = searchSpaceHandler.getAllComponentNames(searchspace)
-allComponentFullNames = searchSpaceHandler.getAllComponentfullNames(searchspace)
-categories = searchSpaceHandler.getAllCategories(searchspace)
+allComponentNames = searchspace["name"].to_numpy()
+allComponentFullNames = searchspace["fullName"].to_numpy()
+categories = searchspace["category"].to_numpy()
 
 x = 0
 y = 0
@@ -68,10 +68,10 @@ possibleComponentPartner = []
 
 for a in range(0, len(allComponentNames)):
     temp = []
-    providedInterfaces = searchspace.loc[searchspace['name'] == allComponentNames[a]].iat[0, 4]
+    providedInterfaces = searchspace.loc[searchspace['name'] == allComponentNames[a]]["providedInterface"].iloc[0]
     if type(providedInterfaces) is list:
         for b in range(0, len(allComponentNames)):
-            requiredInterfaces = searchspace.loc[searchspace['name'] == allComponentNames[b]].iat[0, 3]
+            requiredInterfaces = searchspace.loc[searchspace['name'] == allComponentNames[b]]["requiredInterface"].iloc[0]
             if type(requiredInterfaces) is list:
                 for elemA in providedInterfaces:
                     if (elemA in requiredInterfaces or allComponentFullNames[a] in requiredInterfaces) and categories[a] != categories[b]:
@@ -92,4 +92,4 @@ def getDatapoints():
 
 
 def getStyle():
-    return style
+    return style.copy()
