@@ -10,9 +10,6 @@ import searchSpaceHandler
 import runHandler
 import dagHandler
 
-# debugging
-pd.options.display.max_columns = None
-# debugging
 
 # global variables
 runSelector = None
@@ -244,13 +241,11 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
 
         color = ""
         opacity = "0"
-        if solPerformance == None or pd.isna(solPerformance):
+        if pd.isna(solPerformance):
             color = ""
             if restrictions == 0:
                 opacity = "1"
         else:
-            solPerformance = float(solPerformance)
-
             if minimisation:
                 if solPerformance >= 0.67:
                     color = "lightskyblue"
@@ -285,7 +280,7 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
             stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity': opacity}})
 
         if opacity != "0":
-            if type(solPerformance) == float:
+            if not pd.isna(solPerformance):
                 if (minimisation and solPerformance < bestPerformance) or (not minimisation and solPerformance > bestPerformance):
                     bestPerformance = solPerformance
                     bestSolution = solComponents
@@ -318,8 +313,13 @@ def getSolutionDetails(run, runname, length):
     if runname != "searchspace":
         isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
         timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
+        if pd.isna(performance):
+            performance = None
         info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameter values: " + str(parameterValues) + "\nOptimisation value: " + str(performance)
-        exceptions = str(solExceptions)
+        if pd.isna(solExceptions):
+            exceptions = "There are no exceptions for this solution."
+        else:
+            exceptions = str(solExceptions)
         if not isValid:
             warning = "This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
         evalExists, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median = runHandler.getDetailedEvaluationReport(
@@ -350,13 +350,13 @@ def getPlotData():
     anytimePlotData = run.copy()
     anytimePlotData = anytimePlotData[anytimePlotData.valid == True]
     anytimePlotData = anytimePlotData["performance"]
-    anytimePlotData.replace(to_replace=[None], value=0, inplace=True)
+    anytimePlotData = anytimePlotData.fillna(0)
     anytimePlotData = anytimePlotData.apply(lambda x: float(x))
     anytimePlotData = anytimePlotData.cummax()
     parallelCategoriesPlotData = run.copy()
     parallelCategoriesPlotData = parallelCategoriesPlotData[parallelCategoriesPlotData.valid == True]
     parallelCategoriesPlotData = parallelCategoriesPlotData[["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"]]
-    parallelCategoriesPlotData.replace(to_replace=[None], value="Not used", inplace=True)
+    parallelCategoriesPlotData = parallelCategoriesPlotData.fillna("Not used")
     return anytimePlotData, parallelCategoriesPlotData
 
 
@@ -465,8 +465,9 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
             msg += " no restrictions at timestep " + str(currValue) + "."
         else:
             msg += " restriction \"performance >= " + str(restrictions) + "\" at timestep " + str(currValue) + "."
+
         measure = run.loc[0, "measure"]
-        if measure == None:
+        if pd.isna(measure):
             msg += "\nThere is no info available what measure we are optimising for. We assume maximisation of the performance value."
             if evalMeasure != "performance":
                 warning = "Please be aware that currently \"" + evalMeasure + "\" is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
