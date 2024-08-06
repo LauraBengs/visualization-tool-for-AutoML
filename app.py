@@ -10,6 +10,10 @@ import searchSpaceHandler
 import runHandler
 import dagHandler
 
+# debugging
+pd.options.display.max_columns = None
+# debugging
+
 # global variables
 runSelector = None
 run = None
@@ -312,7 +316,7 @@ def getSolutionDetails(run, runname, length):
     if runname == "searchspace":
         info = "Infos about the solution candidate at timestep x will be provided here."
     if runname != "searchspace":
-        isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, (length+1))
+        isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
         timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
         info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameter values: " + str(parameterValues) + "\nOptimisation value: " + str(performance)
         exceptions = str(solExceptions)
@@ -489,7 +493,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, runname, restrictions, currValue, evalMeasure)
         if bestSol != None:
             bestSolution = "Found at timestep " + str(bestFound)
-            _, timestamp, components, parameterValues, performance, _ = runHandler.getSolutionDetails(run, (bestFound+1))
+            _, timestamp, components, parameterValues, performance, _ = runHandler.getSolutionDetails(run, bestFound)
             timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
             bestSolution += "\nTimestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nEvaluation value: " + str(bestPerformance) + "\nOptimisation value: " + str(performance)
         info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, runname, currValue)
