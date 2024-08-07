@@ -140,15 +140,15 @@ def getComponentsPerCategory(elemComponents, searchspace):
     metaMLC = np.nan
     for component in elemComponents:
         category = searchSpaceHandler.getComponentCategory(component, searchspace)
-        if category == "Kernel":
+        if category == "kernel":
             kernel = component
-        elif category == "BaseSLC":
+        elif category == "baseSLC":
             baseSLC = component
-        elif category == "MetaSLC":
+        elif category == "metaSLC":
             metaSLC = component
-        elif category == "BaseMLC":
+        elif category == "baseMLC":
             baseMLC = component
-        elif category == "MetaMLC":
+        elif category == "metaMLC":
             metaMLC = component
     return kernel, baseSLC, metaSLC, baseMLC, metaMLC
 
@@ -204,7 +204,7 @@ def getDetailedEvaluationReport(run, timestep):
 
     report = {measure: None for measure in measurements}
 
-    if timestep != 0 and evalExists:
+    if evalExists:
         for measure in measurements:
             report[measure] = run[measure][timestep]
 

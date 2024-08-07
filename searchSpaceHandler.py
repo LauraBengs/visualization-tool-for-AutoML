@@ -72,17 +72,23 @@ def getComponentInfo(info):
 
     requiredInterface = info["requiredInterface"].iloc[0]
     if type(requiredInterface) is list:
-        text = text + "**Required interface(s):** \n"
-        for elem in requiredInterface:
-            text = text + "- " + elem + "\n"
+        text = text + "**Required interface(s):** "
+        for i, elem in enumerate(requiredInterface):
+            if i == 0:
+                text += elem
+            else:
+                text += ", " + elem
     else:
         text = text + "**Required interface(s):** None\n"
 
     providedInterface = info["providedInterface"].iloc[0]
     if type(providedInterface) is list:
-        text = text + "\n**Provided interface(s):**\n"
-        for elem in providedInterface:
-            text = text + "- " + elem + "\n"
+        text = text + "\n**Provided interface(s):** "
+        for i, elem in enumerate(providedInterface):
+            if i == 0:
+                text += elem
+            else:
+                text += ", " + elem
     else:
         text = text + "\n**Provided interface(s):** None\n"
 

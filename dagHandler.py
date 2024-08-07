@@ -20,7 +20,7 @@ iMM = 1
 
 components = []
 for i in range(0, len(allComponentNames)):
-    if categories[i] == "Kernel":
+    if categories[i] == "kernel":
         x = 0
         y = yK
         if yK >= 0:
@@ -28,7 +28,7 @@ for i in range(0, len(allComponentNames)):
         else:
             yK = yK + iK * 60
         iK += 1
-    elif categories[i] == "BaseSLC":
+    elif categories[i] == "baseSLC":
         x = 300
         y = yBS
         if yBS >= 0:
@@ -36,7 +36,7 @@ for i in range(0, len(allComponentNames)):
         else:
             yBS = yBS + iBS * 60
         iBS += 1
-    elif categories[i] == "MetaSLC":
+    elif categories[i] == "metaSLC":
         x = 600
         y = yMS
         if yMS >= 0:
@@ -44,7 +44,7 @@ for i in range(0, len(allComponentNames)):
         else:
             yMS = yMS + iMS * 60
         iMS += 1
-    elif categories[i] == "BaseMLC":
+    elif categories[i] == "baseMLC":
         x = 900
         y = yBM
         if yBM >= 0:
@@ -52,7 +52,7 @@ for i in range(0, len(allComponentNames)):
         else:
             yBM = yBM + iBM * 60
         iBM += 1
-    elif categories[i] == "MetaMLC":
+    elif categories[i] == "metaMLC":
         x = 1200
         y = yMM
         if yMM >= 0:
@@ -87,11 +87,11 @@ style = [
 ]
 
 stylesheetSearchspace = [{'selector': 'node', 'style': {'content': 'data(label)'}},
-                         {'selector': '.Kernel', 'style': {'background-color': '#EC9F05'}},
-                         {'selector': '.BaseSLC', 'style': {'background-color': '#4A6C6F'}},
-                         {'selector': '.MetaSLC', 'style': {'background-color': '#A1C084'}},
-                         {'selector': '.BaseMLC', 'style': {'background-color': '#A63446'}},
-                         {'selector': '.MetaMLC', 'style': {'background-color': '#D89A9E'}},
+                         {'selector': '.kernel', 'style': {'background-color': '#EC9F05'}},
+                         {'selector': '.baseSLC', 'style': {'background-color': '#4A6C6F'}},
+                         {'selector': '.metaSLC', 'style': {'background-color': '#A1C084'}},
+                         {'selector': '.baseMLC', 'style': {'background-color': '#A63446'}},
+                         {'selector': '.metaMLC', 'style': {'background-color': '#D89A9E'}},
                          {'selector': 'edge', 'style': {'line-color': '#adaaaa'}}]
 
 

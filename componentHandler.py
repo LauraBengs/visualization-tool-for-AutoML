@@ -26,15 +26,15 @@ def getCategory(component):
     if providedInterfaces == []:
         raise Exception("Could not get component category due to an empty list")
     if "K" in providedInterfaces:
-        return "Kernel"
+        return "kernel"
     if "MetaClassifier" in providedInterfaces:
-        category = "MetaSLC"
+        category = "metaSLC"
     if "BaseClassifier" in providedInterfaces:
-        category = "BaseSLC"
+        category = "baseSLC"
     if "BasicMLClassifier" in providedInterfaces:
-        category = "BaseMLC"
+        category = "baseMLC"
     if "MetaMLClassifier" in providedInterfaces:
-        category = "MetaMLC"
+        category = "metaMLC"
 
     return category
 

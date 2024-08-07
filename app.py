@@ -10,6 +10,10 @@ import searchSpaceHandler
 import runHandler
 import dagHandler
 
+# debugging and testing
+pd.options.display.max_columns = None
+pd.options.display.max_rows = None
+# debugging and testing
 
 # global variables
 runSelector = None
@@ -185,10 +189,18 @@ app.layout = html.Div([
 
 
 def getInfosForModal(data):
-    modalHeader = data['label']
-    component = searchspace.loc[searchspace['name'] == modalHeader]
-    modalText = searchSpaceHandler.getComponentInfo(component)
-    return modalHeader, modalText
+    componentName = data['label']
+    component = searchspace.loc[searchspace['name'] == componentName]
+    generalInfo = searchSpaceHandler.getComponentInfo(component)
+
+    if runSelector != "searchspace":
+        componentCategory = searchSpaceHandler.getComponentCategory(componentName, searchspace)
+        info = run.copy()
+        # info = info.dropna(subset=["performance"])
+        info = info[info.valid == True]
+        info = info[info[componentCategory] == componentName]
+        print(info)
+    return componentName, generalInfo
 
 
 @callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('btnHelp', 'n_clicks'), Input('dag', 'tapNodeData'), State("modal", "is_open"))
@@ -201,8 +213,9 @@ def toggle_modal(n, data, is_open):
         modalText = dcc.Markdown(performance + edge + filter)
         return not is_open, modalHeader, modalText
     elif data is not None:
-        header, text = getInfosForModal(data)
+        header, generalInfo = getInfosForModal(data)
         modalHeader = dcc.Markdown("#### " + header)
+        text = generalInfo + "\n\n ---"
         modalText = dcc.Markdown(text)
         return not is_open, modalHeader, modalText
     return is_open, '', ''
@@ -420,6 +433,11 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
     elif uploadedFile:
         runname = uploadedRunname
+    elif runname == "searchspace" and runname != runSelector:
+        run = None
+        runSelector = runname
+        uploadedFile = False
+        uploadedRunname = None
 
     if restrictions == None:
         msg = "Please enter a valid restriction (value between 0 and 1)"
