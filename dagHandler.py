@@ -86,6 +86,14 @@ style = [
     {'selector': 'edge', 'style': {'opacity': '0'}}
 ]
 
+stylesheetSearchspace = [{'selector': 'node', 'style': {'content': 'data(label)'}},
+                         {'selector': '.Kernel', 'style': {'background-color': '#EC9F05'}},
+                         {'selector': '.BaseSLC', 'style': {'background-color': '#4A6C6F'}},
+                         {'selector': '.MetaSLC', 'style': {'background-color': '#A1C084'}},
+                         {'selector': '.BaseMLC', 'style': {'background-color': '#A63446'}},
+                         {'selector': '.MetaMLC', 'style': {'background-color': '#D89A9E'}},
+                         {'selector': 'edge', 'style': {'line-color': '#adaaaa'}}]
+
 
 def getDatapoints():
     return datapoints

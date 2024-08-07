@@ -70,7 +70,7 @@ app.layout = html.Div([
                 html.H4("Restrictions"),
                 html.Hr(),
                 html.H5("Performance"),
-                html.Div("Only visualise solutions with a performance greater or equal to"),
+                html.Div("Only visualise solutions with a performance greater or equal to the following value."),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
                 html.H4("Evaluation Measure"),
                 html.Hr(),
@@ -208,17 +208,7 @@ def toggle_modal(n, data, is_open):
     return is_open, '', ''
 
 
-def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
-    if runname == "searchspace":
-        stylesheet = [{'selector': 'node', 'style': {'content': 'data(label)'}},
-                      {'selector': '.Kernel', 'style': {'background-color': '#EC9F05'}},
-                      {'selector': '.BaseSLC', 'style': {'background-color': '#4A6C6F'}},
-                      {'selector': '.MetaSLC', 'style': {'background-color': '#A1C084'}},
-                      {'selector': '.BaseMLC', 'style': {'background-color': '#A63446'}},
-                      {'selector': '.MetaMLC', 'style': {'background-color': '#D89A9E'}},
-                      {'selector': 'edge', 'style': {'line-color': '#adaaaa'}}]
-        return stylesheet, None, 0, 0
-
+def showSearchrun(stylesheet, run, restrictions, length, evalMeasure):
     solutions = run["components"].to_numpy()
     performances = run[evalMeasure].to_numpy()
     valids = run["valid"].to_numpy()
@@ -303,37 +293,50 @@ def showSearchrun(stylesheet, run, runname, restrictions, length, evalMeasure):
     return stylesheet, bestSolution, bestPerformance, bestFound
 
 
-def getSolutionDetails(run, runname, length):
+def getSolutionDetails(run, length):
     warning = None
-    exceptions = "Infos about exceptions will be provided here."
-    evaluation = "A detailed evaluation report will be provided here."
+    exceptions = None
+    evaluation = None
     info = None
-    if runname == "searchspace":
-        info = "Infos about the solution candidate at timestep x will be provided here."
-    if runname != "searchspace":
-        isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
-        timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
-        if pd.isna(performance):
-            performance = None
-        info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameter values: " + str(parameterValues) + "\nOptimisation value: " + str(performance)
-        if pd.isna(solExceptions):
-            exceptions = "There are no exceptions for this solution."
-        else:
-            exceptions = str(solExceptions)
-        if not isValid:
-            warning = "This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
-        evalExists, evalTime_n, FMicroAvg_n, ExactMatch_n, FMacroAvgD_n, FMacroAvgL_n, evalTime_max, evalTime_min, FMicroAvg_max, FMicroAvg_min, HammingLoss_n, evalTime_mean, ExactMatch_max, ExactMatch_min, FMacroAvgD_max, FMacroAvgD_min, FMacroAvgL_max, FMacroAvgL_min, FMicroAvg_mean, JaccardIndex_n, ExactMatch_mean, FMacroAvgD_mean, FMacroAvgL_mean, HammingLoss_max, HammingLoss_min, evalTime_median, FMicroAvg_median, HammingLoss_mean, JaccardIndex_max, JaccardIndex_min, ExactMatch_median, FMacroAvgD_median, FMacroAvgL_median, JaccardIndex_mean, HammingLoss_median, JaccardIndex_median = runHandler.getDetailedEvaluationReport(
-            run, length)
-        if evalExists:
-            measurements = "Measurements:\n- evalTime_n: " + str(evalTime_n) + "\n- FMicroAvg_n: " + str(FMicroAvg_n) + "\n- ExactMatch_n: " + str(ExactMatch_n) + "\n- FMacroAvgD_n: " + str(FMacroAvgD_n) + "\n- FMacroAvgL_n: " + str(FMacroAvgL_n) + "\n- HammingLoss_n: " + str(HammingLoss_n) + "\n- JaccardIndex_n: " + str(JaccardIndex_n)
-            time = "Times:\n- evalTime_min: " + str(evalTime_min) + "\n- evalTime_max: " + str(evalTime_max) + "\n- evalTime_mean: " + str(evalTime_mean) + "\n- evalTime_median: " + str(evalTime_median)
-            minimisation = "Minimisation:\n- HammingLoss_min: " + str(HammingLoss_min) + "\n- HammingLoss_max: " + str(HammingLoss_max) + "\n- HammingLoss_mean: " + str(HammingLoss_mean) + "\n- HammingLoss_median: " + str(HammingLoss_median)
-            maximisation = "Maximisation:\n- ExactMatch_min: " + str(ExactMatch_min) + "\n- ExactMatch_max: " + str(ExactMatch_max) + "\n- ExactMatch_mean: " + str(ExactMatch_mean) + "\n- ExactMatch_median: " + str(ExactMatch_median) + "\n- FMicroAvg_min: " + str(FMicroAvg_min) + "\n- FMicroAvg_max: " + str(FMicroAvg_max) + "\n- FMicroAvg_mean: " + str(FMicroAvg_mean) + "\n- FMicroAvg_median: " + str(FMicroAvg_median) + "\n- FMacroAvgD_min: " + str(FMacroAvgD_min) + "\n- FMacroAvgD_max: " + str(
-                FMacroAvgD_max) + "\n- FMacroAvgD_mean: " + str(FMacroAvgD_mean) + "\n- FMacroAvgD_median: " + str(FMacroAvgD_median) + "\n- FMacroAvgL_min: " + str(FMacroAvgL_min) + "\n- FMacroAvgL_max: " + str(FMacroAvgL_max) + "\n- FMacroAvgL_mean: " + str(FMacroAvgL_mean) + "\n- FMacroAvgL_median: " + str(FMacroAvgL_median) + "\n- JaccardIndex_min: " + str(JaccardIndex_min) + "\n- JaccardIndex_max: " + str(JaccardIndex_max) + "\n- JaccardIndex_mean: " + str(JaccardIndex_mean) + "\n- JaccardIndex_median: " + str(JaccardIndex_median)
-            evaluation = measurements + "\n\n" + time + "\n\n" + minimisation + "\n\n" + maximisation
-            evaluation = dcc.Markdown(evaluation)
-        else:
-            evaluation = "There does not exist a detailed evaluation report."
+
+    isValid, timestamp, components, parameterValues, performance, solExceptions = runHandler.getSolutionDetails(run, length)
+
+    if not isValid:
+        warning = "This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
+
+    timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
+    if pd.isna(performance):
+        performance = None
+    info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameter values: " + str(parameterValues) + "\nOptimisation value: " + str(performance)
+
+    if pd.isna(solExceptions):
+        exceptions = "There are no exceptions for this solution."
+    else:
+        exceptions = str(solExceptions)
+
+    evalExists, evalReport = runHandler.getDetailedEvaluationReport(run, length)
+    if evalExists:
+        measurements = "Measurements:"
+        for measure in runHandler.dimensions:
+            measurements += "\n- " + measure + ": " + str(evalReport[measure])
+
+        time = "Times:"
+        for measure in runHandler.times:
+            time += "\n- " + measure + ": " + str(evalReport[measure])
+
+        minimisation = "Minimisation:"
+        for measure in runHandler.minimisation:
+            minimisation += "\n- " + measure + ": " + str(evalReport[measure])
+
+        maximisation = "Maximisation:"
+        for measure in runHandler.maximisation:
+            maximisation += "\n- " + measure + ": " + str(evalReport[measure])
+
+        evaluation = measurements + "\n\n" + time + "\n\n" + minimisation + "\n\n" + maximisation
+        evaluation = dcc.Markdown(evaluation)
+    else:
+        evaluation = "There does not exist a detailed evaluation report."
+
     return info, exceptions, warning, evaluation
 
 
@@ -390,9 +393,6 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
     global globalParallelCategoriesPlotData
     controlsStyle = {'display': 'block'}
 
-    if runname == "searchspace":
-        controlsStyle = {'display': 'none'}
-
     if upload != None:
         if ".json" in uploadName:
             _, content_string = upload.split(',')
@@ -425,7 +425,17 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         msg = "Please enter a valid restriction (value between 0 and 1)"
         return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
-    if runname != "searchspace":
+    if runname == "searchspace":
+        controlsStyle = {'display': 'none'}
+        msg = "This is the dag showing all components and possible connections for our searchspace."
+        solutionHeader += "x"
+        bestSolutionHeader += "x"
+        bestSolution = "Infos about the best found solution until timestep x will be provided here."
+        info = "Infos about the solution candidate at timestep x will be provided here."
+        exceptions = "Infos about exceptions will be provided here."
+        evaluation = "A detailed evaluation report will be provided here."
+        newStyle = dagHandler.stylesheetSearchspace
+    else:
         runLength = runHandler.getRunLength(run)-1
 
         if "btnStart" == ctx.triggered_id and disabled:
@@ -460,11 +470,10 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         elif not disabled and intervalValue > max:
             disabled = True
 
-        msg = "This is the dag for \"" + runname + "\" with"
         if restrictions == 0:
-            msg += " no restrictions at timestep " + str(currValue) + "."
+            msg = "This is the dag for \"" + runname + "\" with no restrictions at timestep " + str(currValue) + "."
         else:
-            msg += " restriction \"performance >= " + str(restrictions) + "\" at timestep " + str(currValue) + "."
+            msg = "This is the dag for \"" + runname + "\" with restriction \"performance >= " + str(restrictions) + "\" at timestep " + str(currValue) + "."
 
         measure = run.loc[0, "measure"]
         if pd.isna(measure):
@@ -480,30 +489,26 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
             msg += "minimise."
         else:
             msg += "maximise."
+
         solutionHeader += str(currValue)
         bestSolutionHeader += str(currValue) + " using " + evalMeasure + " as evaluation value"
-    else:
-        msg = "This is the dag showing all components and possible connections for our searchspace."
-        solutionHeader += "x"
-        bestSolutionHeader += "x"
-        bestSolution = "Infos about the best found solution until timestep x will be provided here."
 
-    intervalValue = currValue
-
-    if restrictions != None:
-        newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, runname, restrictions, currValue, evalMeasure)
+        newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, restrictions, currValue, evalMeasure)
         if bestSol != None:
             bestSolution = "Found at timestep " + str(bestFound)
             _, timestamp, components, parameterValues, performance, _ = runHandler.getSolutionDetails(run, bestFound)
             timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
             bestSolution += "\nTimestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nEvaluation value: " + str(bestPerformance) + "\nOptimisation value: " + str(performance)
-        info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, runname, currValue)
+
+        info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, currValue)
         if warning != None and solutionWarning != None:
             warning += "\n\n" + solutionWarning
         elif warning == None and solutionWarning != None:
             warning = solutionWarning
-        if runname != "searchspace":
-            anytimePlot, parallelPlot = createPlots(currValue, runLength)
+
+        anytimePlot, parallelPlot = createPlots(currValue, runLength)
+
+    intervalValue = currValue
 
     return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 

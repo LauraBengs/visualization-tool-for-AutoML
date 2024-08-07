@@ -5,13 +5,13 @@ import componentHandler
 import searchSpaceHandler
 import numpy as np
 
-measurements = ["evalTime_n", "FMicroAvg_n", "ExactMatch_n", "FMacroAvgD_n", "FMacroAvgL_n",
-                "evalTime_max", "evalTime_min", "FMicroAvg_max", "FMicroAvg_min", "HammingLoss_n",
-                "evalTime_mean", "ExactMatch_max", "ExactMatch_min", "FMacroAvgD_max", "FMacroAvgD_min",
-                "FMacroAvgL_max", "FMacroAvgL_min", "FMicroAvg_mean", "JaccardIndex_n", "ExactMatch_mean",
-                "FMacroAvgD_mean", "FMacroAvgL_mean", "HammingLoss_max", "HammingLoss_min", "evalTime_median",
-                "FMicroAvg_median", "HammingLoss_mean", "JaccardIndex_max", "JaccardIndex_min", "ExactMatch_median",
-                "FMacroAvgD_median", "FMacroAvgL_median", "JaccardIndex_mean", "HammingLoss_median", "JaccardIndex_median"]
+dimensions = ["evalTime_n", "FMicroAvg_n", "ExactMatch_n", "FMacroAvgD_n", "FMacroAvgL_n", "HammingLoss_n", "JaccardIndex_n"]
+times = ["evalTime_max", "evalTime_min", "evalTime_mean",  "evalTime_median"]
+minimisation = ["HammingLoss_max", "HammingLoss_min", "HammingLoss_mean", "HammingLoss_median"]
+maximisation = ["FMicroAvg_max", "FMicroAvg_min", "ExactMatch_max", "ExactMatch_min", "FMacroAvgD_max", "FMacroAvgD_min", "FMacroAvgL_max",
+                "FMacroAvgL_min", "FMicroAvg_mean",  "ExactMatch_mean", "FMacroAvgD_mean", "FMacroAvgL_mean", "FMicroAvg_median",  "JaccardIndex_max",
+                "JaccardIndex_min", "ExactMatch_median", "FMacroAvgD_median", "FMacroAvgL_median", "JaccardIndex_mean",  "JaccardIndex_median"]
+measurements = dimensions + times + minimisation + maximisation
 
 
 def getRunAsDF(data, searchspace):
@@ -208,4 +208,4 @@ def getDetailedEvaluationReport(run, timestep):
         for measure in measurements:
             report[measure] = run[measure][timestep]
 
-    return evalExists, *report.values()
+    return evalExists, report
