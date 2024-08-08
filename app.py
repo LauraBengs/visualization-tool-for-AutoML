@@ -384,10 +384,10 @@ def getSolutionDetails(run, length):
     return info, exceptions, warning, evaluation
 
 
-def createPlots(currValue, runLength):
+def createPlots(currValue):
     anytimePlot = px.scatter()
-    # anytimePlotData = globalAnytimePlotData.drop(index=range(currValue, runLength))
     anytimePlot = px.line(globalAnytimePlotData, y="performance", line_shape='hv')
+    anytimePlot.add_vline(x=currValue, line_color="red")
     parallelPlot = px.scatter()
     parallelPlot = px.parallel_categories(globalParallelCategoriesPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
     return anytimePlot, parallelPlot
@@ -554,7 +554,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         elif warning == None and solutionWarning != None:
             warning = solutionWarning
 
-        anytimePlot, parallelPlot = createPlots(currValue, runLength)
+        anytimePlot, parallelPlot = createPlots(currValue)
 
     intervalValue = currValue
 
