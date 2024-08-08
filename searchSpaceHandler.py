@@ -143,3 +143,14 @@ def getComponentCategory(componentName, searchspace):
     row = searchspace[searchspace.name == componentName]
     category = row['category'].iloc[0]
     return category
+
+
+def getComponentParameters(componentName, searchspace):
+    row = searchspace[searchspace.name == componentName]
+    parameters = row["parameters"].iloc[0]
+    parametersList = []
+    if type(parameters) is list:
+        for i in range(0, len(parameters)):
+            parameterName = componentHandler.getParameterName(parameters[i])
+            parametersList.append(parameterName)
+    return parametersList

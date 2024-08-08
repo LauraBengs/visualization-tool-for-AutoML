@@ -1,4 +1,4 @@
-from dash import Dash, html, Input, Output, callback, State, dcc, ctx
+from dash import Dash, html, Input, Output, callback, State, dcc, ctx, dash_table
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 import json
@@ -175,7 +175,9 @@ app.layout = html.Div([
     dbc.Modal(
         [
             dbc.ModalHeader(id="modal-header"),
-            dbc.ModalBody(id="modal-text"),
+            dbc.ModalBody([html.Div(id="modal-text"),
+                           html.Div(id="modal-table")]),
+
         ],
         id="modal",
         scrollable=True,
@@ -188,37 +190,65 @@ app.layout = html.Div([
 ])
 
 
-def getInfosForModal(data):
+def getInfosForModal(data, currValue):
     componentName = data['label']
     component = searchspace.loc[searchspace['name'] == componentName]
     generalInfo = searchSpaceHandler.getComponentInfo(component)
+    runInfo = None
 
     if runSelector != "searchspace":
         componentCategory = searchSpaceHandler.getComponentCategory(componentName, searchspace)
+
         info = run.copy()
-        # info = info.dropna(subset=["performance"])
+        info = info.iloc[:currValue+1]
         info = info[info.valid == True]
         info = info[info[componentCategory] == componentName]
-        print(info)
-    return componentName, generalInfo
+
+        parameterList = searchSpaceHandler.getComponentParameters(componentName, searchspace)
+        if parameterList != []:
+            newData = {}
+            for parameter in parameterList:
+                newData[parameter] = []
+
+            for i in range(0, runHandler.getRunLength(info)):
+                componentsList = info["components"].values[i]
+                index = componentsList.index(componentName)
+                parameterValues = info["parameterValues"].values[i]
+                componentParameterValues = parameterValues[index]
+                for parameter in parameterList:
+                    parameterValue = componentParameterValues.get(parameter)
+                    newData[parameter].append(parameterValue)
+
+            for parameter in parameterList:
+                dataToBeAdded = newData[parameter]
+                info.insert(8, parameter, dataToBeAdded, True)
+
+        info = info[["timestamp", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["performance", "exceptions"]]
+        runInfo = dash_table.DataTable(info.to_dict("records"), [{"name": i, "id": i} for i in info.columns])
+
+    return componentName, generalInfo, runInfo
 
 
-@callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Input('btnHelp', 'n_clicks'), Input('dag', 'tapNodeData'), State("modal", "is_open"))
-def toggle_modal(n, data, is_open):
+@callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Output("modal-table", "children"),
+          Input('btnHelp', 'n_clicks'), Input('dag', 'tapNodeData'),
+          State("modal", "is_open"), State("slider", "value"))
+def toggle_modal(n, data, is_open, currValue):
     if "btnHelp" == ctx.triggered_id:
         modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
         performance = "##### Performance \n - Given by the colour of a node \n - Maximisation: Yellow (<= 0.33), Orange (<= 0.66), Red (<= 0.66), Darkred (> 0.9) \n - Minimisation: blue \n - Grey: No performance value available \n"
         edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times \n"
         filter = "##### Filter \n Solution candidates that contain two or more components from one categorie will not be visualised. \n A corresponding message about why a solution candidate is not being visualised can be found in the details section."
         modalText = dcc.Markdown(performance + edge + filter)
-        return not is_open, modalHeader, modalText
+        return not is_open, modalHeader, modalText, ''
     elif data is not None:
-        header, generalInfo = getInfosForModal(data)
+        header, generalInfo, runInfo = getInfosForModal(data, currValue)
         modalHeader = dcc.Markdown("#### " + header)
-        text = generalInfo + "\n\n ---"
-        modalText = dcc.Markdown(text)
-        return not is_open, modalHeader, modalText
-    return is_open, '', ''
+        if runSelector != "searchspace":
+            modalText = dcc.Markdown(generalInfo + "\n\n ---")
+        else:
+            modalText = dcc.Markdown(generalInfo)
+        return not is_open, modalHeader, modalText, runInfo
+    return is_open, '', '', ''
 
 
 def showSearchrun(stylesheet, run, restrictions, length, evalMeasure):
