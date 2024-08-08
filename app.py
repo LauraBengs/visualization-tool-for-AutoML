@@ -224,6 +224,8 @@ def getInfosForModal(data, currValue):
                 info.insert(8, parameter, dataToBeAdded, True)
 
         info = info[["timestamp", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["performance", "exceptions"]]
+        timesteps = list(info.index.values)
+        info.insert(0, "timestep", timesteps, True)
         runInfo = dash_table.DataTable(info.to_dict("records"), [{"name": i, "id": i} for i in info.columns])
 
     return componentName, generalInfo, runInfo
