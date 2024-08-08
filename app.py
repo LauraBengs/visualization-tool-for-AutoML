@@ -183,7 +183,7 @@ app.layout = html.Div([
         scrollable=True,
         is_open=False,
         style={'white-space': 'pre-wrap'},
-        size="lg"
+        size="xl"
     ),
 
     dcc.Interval(id='interval-component', interval=800, n_intervals=0, disabled=True),
@@ -349,7 +349,6 @@ def getSolutionDetails(run, length):
     if not isValid:
         warning = "This solution is not valid according to our definition and is therefore not being visualised in the dag. (The solution probably consists of two or more components belonging to the same category)."
 
-    timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
     if pd.isna(performance):
         performance = None
     info = "Timestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameter values: " + str(parameterValues) + "\nOptimisation value: " + str(performance)
@@ -547,7 +546,6 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         if bestSol != None:
             bestSolution = "Found at timestep " + str(bestFound)
             _, timestamp, components, parameterValues, performance, _ = runHandler.getSolutionDetails(run, bestFound)
-            timestamp = pd.to_datetime(int(timestamp), utc=True, unit='ms')
             bestSolution += "\nTimestamp: " + str(timestamp) + "\nComponents: " + str(components) + "\nParameterValues: " + str(parameterValues) + "\nEvaluation value: " + str(bestPerformance) + "\nOptimisation value: " + str(performance)
 
         info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, currValue)

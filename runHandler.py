@@ -35,7 +35,9 @@ def getRunAsDF(data, searchspace):
 
     for element in data:
         elemTimestamp = element.get('timestamp_found')
-        dataDict["timestamp"].append(elemTimestamp)
+        timestamp = pd.to_datetime(int(elemTimestamp), utc=True, unit='ms')
+        formattedTimestamp = timestamp.strftime(r"%d.%m.%Y %H:%M:%S:%f")[:-3]
+        dataDict["timestamp"].append(formattedTimestamp)
 
         elemComponents, elemParameterValues = getComponents(element)
         dataDict["components"].append(elemComponents)
