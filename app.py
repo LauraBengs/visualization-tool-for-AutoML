@@ -30,6 +30,8 @@ nodes = {}
 min = 0
 max = 0
 
+overview = ""
+
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -70,7 +72,6 @@ app.layout = html.Div([
                                'borderRadius': '5px',
                                'textAlign': 'center'},
                            ),
-                html.Div(id='uploadError'),
                 html.H4("Restrictions"),
                 html.Hr(),
                 html.H5("Performance"),
@@ -113,7 +114,8 @@ app.layout = html.Div([
 
         dbc.Col([
             dbc.Row([
-                html.H4("Directed acyclic graph (Dag)"),
+                dbc.Col(html.H4("Directed acyclic graph (Dag)"), width=4),
+                dbc.Col(html.Button('i', id='btnInfo', n_clicks=0, className="infoButton"), width=1),
                 html.Hr()
             ]),
             dbc.Row([
@@ -125,21 +127,18 @@ app.layout = html.Div([
                         elements=dagHandler.getDatapoints(),
                         stylesheet=dagHandler.getStyle(),
                         responsive=True),
-                ], width=5),
+                ], width=6),
                 dbc.Col([
                     html.Div(id='solutionWarning', className='warning'),
                     html.H5(id='bestSolutionHeader'),
                     html.Hr(),
                     html.Div(id='bestSolution'),
-                    html.H5("Overview"),
-                    html.Hr(),
-                    html.Div(id='config'),
                     html.H5(id='solutionHeader'),
                     html.Hr(),
                     html.Div(id='solution'),
                     html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')]),
                     html.Details([html.Summary("Click here for a detailed evaluation report"), html.Div(id='evalReport')])
-                ], width=7)
+                ], width=6)
             ]),
             dbc.Row([
                 html.H4("Anytime performance plot"),
@@ -186,6 +185,17 @@ app.layout = html.Div([
         size="xl"
     ),
 
+    dbc.Modal(
+        [
+            dbc.ModalHeader(id="smallModal-header"),
+            dbc.ModalBody(id="smallModal-text")
+        ],
+        id="smallModal",
+        scrollable=True,
+        is_open=False,
+        style={'white-space': 'pre-wrap'},
+    ),
+
     dcc.Interval(id='interval-component', interval=800, n_intervals=0, disabled=True),
 ])
 
@@ -226,23 +236,18 @@ def getInfosForModal(data, currValue):
         info = info[["timestamp", "performance", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["exceptions"]]
         timesteps = list(info.index.values)
         info.insert(0, "timestep", timesteps, True)
-        runInfo = dash_table.DataTable(info.to_dict("records"), [{"name": i, "id": i} for i in info.columns])
+        runInfo = dash_table.DataTable(info.to_dict("records"), [{"name": i, "id": i} for i in info.columns], style_cell={'textAlign': 'left'})
 
     return componentName, generalInfo, runInfo
 
 
 @callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Output("modal-table", "children"),
-          Input('btnHelp', 'n_clicks'), Input('dag', 'tapNodeData'),
+          Input('dag', 'tapNodeData'),
           State("modal", "is_open"), State("slider", "value"))
-def toggle_modal(n, data, is_open, currValue):
-    if "btnHelp" == ctx.triggered_id:
-        modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
-        performance = "##### Performance \n - Given by the colour of a node \n - Maximisation: Yellow (<= 0.33), Orange (<= 0.66), Red (<= 0.66), Darkred (> 0.9) \n - Minimisation: blue \n - Grey: No performance value available \n"
-        edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times \n"
-        filter = "##### Filter \n Solution candidates that contain two or more components from one categorie will not be visualised. \n A corresponding message about why a solution candidate is not being visualised can be found in the details section."
-        modalText = dcc.Markdown(performance + edge + filter)
-        return not is_open, modalHeader, modalText, ''
-    elif data is not None:
+def toggle_modal(data, is_open, currValue):
+    triggeredID = ctx.triggered_id
+
+    if triggeredID == "dag" and data is not None:
         header, generalInfo, runInfo = getInfosForModal(data, currValue)
         modalHeader = dcc.Markdown("#### " + header)
         if runSelector != "searchspace":
@@ -250,7 +255,31 @@ def toggle_modal(n, data, is_open, currValue):
         else:
             modalText = dcc.Markdown(generalInfo)
         return not is_open, modalHeader, modalText, runInfo
+
     return is_open, '', '', ''
+
+
+@callback(Output("smallModal", "is_open"), Output('smallModal-header', 'children'), Output('smallModal-text', 'children'),
+          Input('btnInfo', 'n_clicks'), Input('btnHelp', 'n_clicks'),
+          State('modal', 'is_open'))
+def documentation(n1, n2, is_open):
+    global overview
+    triggeredID = ctx.triggered_id
+
+    if triggeredID == "btnInfo":
+        modalHeader = dcc.Markdown("#### Directed acyclic graph (Dag)")
+        modalText = dcc.Markdown(overview)
+        return not is_open, modalHeader, modalText
+
+    elif triggeredID == "btnHelp":
+        modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
+        performance = "##### Performance \n - Given by the colour of a node \n - Maximisation: yellow to darkred \n - Minimisation: blue \n - Grey: No performance value available \n"
+        edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times \n"
+        filter = "##### Filter \n Solution candidates that contain two or more components from one categorie will not be visualised. \n A corresponding message about why a solution candidate is not being visualised can be found in the details section."
+        modalText = dcc.Markdown(performance + edge + filter)
+        return not is_open, modalHeader, modalText
+
+    return is_open, "", ""
 
 
 def showSearchrun(stylesheet, run, restrictions, length, evalMeasure):
@@ -392,7 +421,7 @@ def getPlotData():
     return anytimePlotData, parallelCategoriesPlotData
 
 
-@callback(Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadError', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('config', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
 def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
@@ -411,7 +440,6 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
     global runSelector
     global uploadedFile
     global uploadedRunname
-    uploadError = ""
     msg = ""
     warning = None
     measure = None
@@ -421,6 +449,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
     global globalAnytimePlotData
     global globalParallelCategoriesPlotData
     controlsStyle = {'display': 'block'}
+    global overview
 
     if upload != None:
         if ".json" in uploadName:
@@ -434,8 +463,8 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
             runname = uploadName
             globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
         else:
-            uploadError = "Please upload a .json file"
-            return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+            warning = "Please upload a .json file"
+            return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, btnStartSymbol, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname)
@@ -456,12 +485,12 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         uploadedRunname = None
 
     if restrictions == None:
-        msg = "Please enter a valid restriction (value: between 0 and 1, steps: 0.1)"
-        return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+        warning = "Please enter a valid restriction (value: between 0 and 1, steps: 0.1)"
+        return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, btnStartSymbol, newStyle, runLength, currValue, disabled, intervalValue
 
     if runname == "searchspace":
         controlsStyle = {'display': 'none'}
-        msg = "This is the dag showing all components and possible connections for our searchspace."
+        msg = "This is the dag showing all components and possible connections for this searchspace."
         solutionHeader += "x"
         bestSolutionHeader += "x"
         bestSolution = "Infos about the best found solution until timestep x will be provided here."
@@ -504,25 +533,26 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         elif not disabled and intervalValue > max:
             disabled = True
 
+        msg = "\n- Run: This is the dag for \"" + runname + "\" at timestep " + str(currValue) + "."
         if restrictions == 0:
-            msg = "This is the dag for \"" + runname + "\" with no restrictions at timestep " + str(currValue) + "."
+            msg += "\n- Restrictions: No restrictions have been selected."
         else:
-            msg = "This is the dag for \"" + runname + "\" with restriction \"performance >= " + str(restrictions) + "\" at timestep " + str(currValue) + "."
+            msg += "\n- Restrictions: Only solutions with a \"performance >= " + str(restrictions) + " are being visualised."
 
         measure = run.loc[0, "measure"]
         if pd.isna(measure):
-            msg += "\nThere is no info available what measure we are optimising for. We assume maximisation of the performance value."
+            msg += "\n- Optimisation: We assume maximisation of the performance value, as there is no info available what measure we are optimising for."
             if evalMeasure != "performance":
                 warning = "Please be aware that currently \"" + evalMeasure + "\" is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
         else:
-            msg += "\nIn this searchrun we are optimising for \"" + str(measure) + "\". Therefore we want to maximise the performance value."
+            msg += "\n- Optimisation: In this searchrun we are optimising for \"" + str(measure) + "\". Therefore we want to maximise the performance value."
             if evalMeasure != "performance" and (measure not in evalMeasure):
                 warning = "Please be aware that currently \"" + evalMeasure + "\" is selected as evaluation measure and this measure was not used as optimisation value. The colors of the dag could therefore be misleading in the interpretation. Please select \"performance\" for interpretation."
-        msg += " Currently \"" + evalMeasure + "\" is selected as evaluation measure, hence we want to "
+        msg += "\n- Evaluation measure: Currently \"" + evalMeasure + "\" is selected as evaluation measure, hence "
         if evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]:
-            msg += "minimise."
+            msg += "smaller values are better."
         else:
-            msg += "maximise."
+            msg += "greater values are better."
 
         solutionHeader += str(currValue)
         bestSolutionHeader += str(currValue) + " using " + evalMeasure + " as evaluation value"
@@ -543,7 +573,9 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
 
     intervalValue = currValue
 
-    return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
+    overview = msg
+
+    return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, btnStartSymbol, newStyle, runLength, currValue, disabled, intervalValue
 
 
 if __name__ == '__main__':
