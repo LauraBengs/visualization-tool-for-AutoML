@@ -37,6 +37,10 @@ Button {
 
 .sidebar {
     background-color: var(--second);
+    width:100%;
+    height:300vh;
+    top:0px;
+    left:0px;
 }
 
 .warning {
