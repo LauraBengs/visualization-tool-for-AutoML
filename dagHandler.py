@@ -1,4 +1,6 @@
 import searchSpaceHandler
+import matplotlib as mpl
+import numpy as np
 
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 allComponentNames = searchspace["name"].to_numpy()
@@ -101,3 +103,17 @@ def getDatapoints():
 
 def getStyle():
     return style.copy()
+
+
+def colorFader(c1, c2, mix=0):
+    c1 = np.array(mpl.colors.to_rgb(c1))
+    c2 = np.array(mpl.colors.to_rgb(c2))
+    return mpl.colors.to_hex((1-mix)*c1 + mix*c2)
+
+
+def getNodeColor(solPerformance, minimisation):
+    if minimisation:
+        color = colorFader('lightskyblue', 'darkblue', solPerformance)
+    else:
+        color = colorFader('yellow', 'darkred', solPerformance)
+    return color

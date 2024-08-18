@@ -223,7 +223,7 @@ def getInfosForModal(data, currValue):
                 dataToBeAdded = newData[parameter]
                 info.insert(8, parameter, dataToBeAdded, True)
 
-        info = info[["timestamp", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["performance", "exceptions"]]
+        info = info[["timestamp", "performance", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["exceptions"]]
         timesteps = list(info.index.values)
         info.insert(0, "timestep", timesteps, True)
         runInfo = dash_table.DataTable(info.to_dict("records"), [{"name": i, "id": i} for i in info.columns])
@@ -274,52 +274,31 @@ def showSearchrun(stylesheet, run, restrictions, length, evalMeasure):
         if not isValid:
             continue
 
-        color = ""
-        opacity = "0"
-        if pd.isna(solPerformance):
-            color = ""
-            if restrictions == 0:
-                opacity = "1"
-        else:
-            if minimisation:
-                if solPerformance >= 0.67:
-                    color = "lightskyblue"
-                elif solPerformance >= 0.34:
-                    color = "dodgerblue"
-                elif solPerformance >= 0.1:
-                    color = "blue"
-                else:
-                    color = "darkblue"
-            else:
-                if solPerformance <= 0.33:
-                    color = "yellow"
-                elif solPerformance <= 0.66:
-                    color = "orange"
-                elif solPerformance <= 0.9:
-                    color = "red"
-                else:
-                    color = "darkred"
+        visualise = False
+        if (pd.isna(solPerformance) and restrictions == 0) or solPerformance >= restrictions:
+            visualise = True
 
-            if solPerformance >= restrictions:
-                opacity = "1"
+        if visualise:
+            for elem in solComponents:
+                global nodes
+                color = ""
 
-        for elem in solComponents:
-            global nodes
-            currentColor = nodes.get(elem)
-            if currentColor == None:
-                nodes[elem] = color
+                currentBestPerformance = nodes.get(elem)
+
+                if currentBestPerformance == None:
+                    nodes[elem] = solPerformance
+                elif pd.isna(currentBestPerformance):
+                    nodes.update({elem: solPerformance})
+                elif solPerformance > currentBestPerformance:
+                    nodes.update({elem: solPerformance})
+
+                currentBestPerformance = nodes.get(elem)
+                if not pd.isna(currentBestPerformance):
+                    color = dagHandler.getNodeColor(currentBestPerformance, minimisation)
+
                 node = "[label = \"" + elem + "\"]"
-            elif (not minimisation and (currentColor != color and currentColor != "darkred") and (color == "darkred" or color == "red" or (color == "orange" and currentColor != "red") or (color == "yellow" and currentColor == ""))) or (minimisation and (currentColor != color and currentColor != "darkblue") and (color == "darkblue" or color == "blue" or (color == "dodgerblue" and currentColor != "blue") or (color == "lightskyblue" and currentColor == ""))):
-                nodes.update({elem: color})
-                node = "[label = \"" + elem + "\"]"
-            stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity': opacity}})
+                stylesheet.append({'selector': node, 'style': {'background-color': color, 'opacity': "1"}})
 
-        if opacity != "0":
-            if not pd.isna(solPerformance):
-                if (minimisation and solPerformance < bestPerformance) or (not minimisation and solPerformance > bestPerformance):
-                    bestPerformance = solPerformance
-                    bestSolution = solComponents
-                    bestFound = s
             for i in range(0, len(solComponents)-1):
                 edge = "#"+solComponents[i+1]+"-"+solComponents[i]
                 global edges
@@ -334,6 +313,12 @@ def showSearchrun(stylesheet, run, restrictions, length, evalMeasure):
                     else:
                         edges.update({edge: newWeight})
                         stylesheet.append({'selector': edge, 'style': {'opacity': '1', 'width': str(edges[edge]), 'target-arrow-shape': 'triangle',  'curve-style': 'bezier'}})
+
+            if not pd.isna(solPerformance):
+                if (minimisation and solPerformance < bestPerformance) or (not minimisation and solPerformance > bestPerformance):
+                    bestPerformance = solPerformance
+                    bestSolution = solComponents
+                    bestFound = s
 
     return stylesheet, bestSolution, bestPerformance, bestFound
 
@@ -471,7 +456,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
         uploadedRunname = None
 
     if restrictions == None:
-        msg = "Please enter a valid restriction (value between 0 and 1)"
+        msg = "Please enter a valid restriction (value: between 0 and 1, steps: 0.1)"
         return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, uploadError, upload, solutionHeader, info, exceptions, btnStartSymbol, msg, newStyle, runLength, currValue, disabled, intervalValue
 
     if runname == "searchspace":
