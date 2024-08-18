@@ -41,9 +41,11 @@ app.layout = html.Div([
     dbc.Row([
         dbc.Col([
             dbc.Row(html.Div([
-                html.H4("Run"),
-                html.Hr(),
-                html.Div("Select a preloaded run or upload a .json file of your searchrun."),
+                dbc.Row([
+                    dbc.Col(html.H4("Run"), width=3),
+                    dbc.Col(html.Button('i', id='btnInfoRun', n_clicks=0, className="infoButton"), width=1),
+                    html.Hr(),
+                ]),
                 html.Div([html.H5("Select run"),
                           dcc.Dropdown(id="runSelector", options=[{"label": "Show searchspace", "value": "searchspace"},
                                                                   {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
@@ -74,8 +76,11 @@ app.layout = html.Div([
                            ),
                 html.H4("Restrictions"),
                 html.Hr(),
-                html.H5("Performance"),
-                html.Div("Only visualise solutions with a performance greater or equal to the following value."),
+                dbc.Row([
+                    dbc.Col(html.H5("Performance"), width=7),
+                    dbc.Col(html.Button('i', id='btnInfoPerformance', n_clicks=0, className="infoButton"), width=1),
+                    html.Hr(),
+                ]),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
                 html.H4("Evaluation Measure"),
                 html.Hr(),
@@ -107,18 +112,19 @@ app.layout = html.Div([
                                 {"label": "JaccardIndex_mean", "value": "JaccardIndex_mean"},
                                 {"label": "JaccardIndex_median", "value": "JaccardIndex_median"},
                              ],
-                    value="performance",
-                    clearable=False)
+                             value="performance",
+                             clearable=False)
             ], className='sidebar'))
         ], width=2),
 
         dbc.Col([
             dbc.Row([
                 dbc.Col(html.H4("Directed acyclic graph (Dag)"), width=4),
-                dbc.Col(html.Button('i', id='btnInfo', n_clicks=0, className="infoButton"), width=1),
+                dbc.Col(html.Button('i', id='btnInfoDag', n_clicks=0, className="infoButton"), width=1),
                 html.Hr()
             ]),
             dbc.Row([
+                html.Div(id='solutionWarning', className='warning'),
                 dbc.Col([
                     cyto.Cytoscape(
                         id='dag',
@@ -129,7 +135,6 @@ app.layout = html.Div([
                         responsive=True),
                 ], width=6),
                 dbc.Col([
-                    html.Div(id='solutionWarning', className='warning'),
                     html.H5(id='bestSolutionHeader'),
                     html.Hr(),
                     html.Div(id='bestSolution'),
@@ -260,13 +265,13 @@ def toggle_modal(data, is_open, currValue):
 
 
 @callback(Output("smallModal", "is_open"), Output('smallModal-header', 'children'), Output('smallModal-text', 'children'),
-          Input('btnInfo', 'n_clicks'), Input('btnHelp', 'n_clicks'),
+          Input('btnInfoDag', 'n_clicks'), Input('btnHelp', 'n_clicks'), Input('btnInfoRun', 'n_clicks'), Input('btnInfoPerformance', 'n_clicks'),
           State('modal', 'is_open'))
-def documentation(n1, n2, is_open):
+def documentation(n1, n2, n3, n4, is_open):
     global overview
     triggeredID = ctx.triggered_id
 
-    if triggeredID == "btnInfo":
+    if triggeredID == "btnInfoDag":
         modalHeader = dcc.Markdown("#### Directed acyclic graph (Dag)")
         modalText = dcc.Markdown(overview)
         return not is_open, modalHeader, modalText
@@ -277,6 +282,16 @@ def documentation(n1, n2, is_open):
         edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times \n"
         filter = "##### Filter \n Solution candidates that contain two or more components from one categorie will not be visualised. \n A corresponding message about why a solution candidate is not being visualised can be found in the details section."
         modalText = dcc.Markdown(performance + edge + filter)
+        return not is_open, modalHeader, modalText
+
+    elif triggeredID == "btnInfoRun":
+        modalHeader = "Run"
+        modalText = "Select a preloaded run or upload a .json file of your searchrun."
+        return not is_open, modalHeader, modalText
+
+    elif triggeredID == "btnInfoPerformance":
+        modalHeader = "Performance"
+        modalText = "Only visualise solutions with a performance greater or equal to the following value."
         return not is_open, modalHeader, modalText
 
     return is_open, "", ""
