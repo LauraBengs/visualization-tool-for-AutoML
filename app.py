@@ -168,8 +168,7 @@ app.layout = html.Div([
                 dbc.Row([
                     dbc.Col(html.I(id='btnMin', n_clicks=0, className="fa-solid fa-backward-fast"), width=2),
                     dbc.Col(html.I(id='btnBack', n_clicks=0, className="fa-solid fa-backward-step"), width=2),
-                    dbc.Col(html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play", style={'display': 'block'}), width=2),
-                    dbc.Col(html.I(id='btnPause', n_clicks=0, className="fa-solid fa-pause", style={'display': 'none'}), width=2),
+                    dbc.Col(html.Div(html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play"), id='playPause', n_clicks=0), width=2),
                     dbc.Col(html.I(id='btnNext', n_clicks=0, className="fa-solid fa-forward-step"), width=2),
                     dbc.Col(html.I(id='btnMax', n_clicks=0, className="fa-solid fa-forward-fast"), width=2)
                 ]),
@@ -447,10 +446,10 @@ def getPlotData():
     return anytimePlotData, parallelCategoriesPlotData
 
 
-@callback(Output('btnStart', 'style'), Output('btnPause', 'style'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
-          Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input('btnPause', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
-          State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'), State('btnPause', 'style'), State('btnStart', 'style'))
-def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, n6, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled, pause, play):
+@callback(Output('playPause', 'children'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+          Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('playPause', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
+          State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'), State('playPause', 'children'))
+def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled, playPause):
     global edges
     global nodes
     edges = {}
@@ -490,7 +489,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, n6, runname, restricti
             globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
         else:
             warning = "Please upload a .json file"
-            return play, pause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
+            return playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname)
@@ -512,7 +511,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, n6, runname, restricti
 
     if restrictions == None:
         warning = "Please enter a valid restriction (value: between 0 and 1, steps: 0.1)"
-        return play, pause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
+        return playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
 
     if runname == "searchspace":
         controlsStyle = {'display': 'none'}
@@ -527,39 +526,32 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, n6, runname, restricti
     else:
         runLength = runHandler.getRunLength(run)-1
 
-        if "btnStart" == ctx.triggered_id and disabled:
+        if "playPause" == ctx.triggered_id and disabled:
             disabled = False
-            play = {'display': 'none'}
-            pause = {'display': 'block'}
-            btnStartSymbol = "||"
-        elif "btnPause" == ctx.triggered_id and not disabled:
+            playPause = html.I(id='btnStart', n_clicks=0, className="fa-solid fa-pause")
+        elif "playPause" == ctx.triggered_id and not disabled:
             disabled = True
-            play = {'display': 'block'}
-            pause = {'display': 'none'}
+            playPause = html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play")
         elif "btnNext" == ctx.triggered_id and currValue < max:
             currValue += 1
             intervalValue = currValue
             disabled = True
-            play = {'display': 'block'}
-            pause = {'display': 'none'}
+            playPause = html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play")
         elif "btnBack" == ctx.triggered_id and currValue > min:
             currValue -= 1
             intervalValue = currValue
             disabled = True
-            play = {'display': 'block'}
-            pause = {'display': 'none'}
+            playPause = html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play")
         elif "btnMin" == ctx.triggered_id or max != runLength:
             currValue = min
             intervalValue = currValue
             disabled = True
-            play = {'display': 'block'}
-            pause = {'display': 'none'}
+            playPause = html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play")
         elif "btnMax" == ctx.triggered_id:
             currValue = max
             intervalValue = currValue
             disabled = True
-            play = {'display': 'block'}
-            pause = {'display': 'none'}
+            playPause = html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play")
 
         if not disabled and intervalValue <= max:
             currValue = intervalValue
@@ -608,7 +600,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, n6, runname, restricti
 
     overview = msg
 
-    return play, pause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
+    return playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
 
 
 if __name__ == '__main__':
