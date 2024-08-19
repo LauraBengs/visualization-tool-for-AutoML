@@ -74,16 +74,17 @@ app.layout = html.Div([
                                'borderRadius': '5px',
                                'textAlign': 'center'},
                            ),
-                html.H4("Restrictions"),
+                html.H4("Settings"),
                 html.Hr(),
                 dbc.Row([
                     dbc.Col(html.H5("Performance"), width=7),
                     dbc.Col(html.Button('i', id='btnInfoPerformance', n_clicks=0, className="infoButton"), width=1),
-                    html.Hr(),
                 ]),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
-                html.H4("Evaluation Measure"),
-                html.Hr(),
+                dbc.Row([
+                    dbc.Col(html.H5("Evaluation Measure"), width=6),
+                    dbc.Col(html.Button('i', id='btnInfoEvalMeasure', n_clicks=0, className="infoButton"), width=1),
+                ]),
                 dcc.Dropdown(id="evalMeasure",
                              options=[
                                 {"label": "performance", "value": "performance"},
@@ -265,33 +266,42 @@ def toggle_modal(data, is_open, currValue):
 
 
 @callback(Output("smallModal", "is_open"), Output('smallModal-header', 'children'), Output('smallModal-text', 'children'),
-          Input('btnInfoDag', 'n_clicks'), Input('btnHelp', 'n_clicks'), Input('btnInfoRun', 'n_clicks'), Input('btnInfoPerformance', 'n_clicks'),
+          Input('btnInfoDag', 'n_clicks'), Input('btnHelp', 'n_clicks'), Input('btnInfoRun', 'n_clicks'), Input('btnInfoPerformance', 'n_clicks'), Input('btnInfoEvalMeasure', 'n_clicks'),
           State('modal', 'is_open'))
-def documentation(n1, n2, n3, n4, is_open):
+def documentation(n1, n2, n3, n4, n5, is_open):
     global overview
     triggeredID = ctx.triggered_id
 
     if triggeredID == "btnInfoDag":
-        modalHeader = dcc.Markdown("#### Directed acyclic graph (Dag)")
-        modalText = dcc.Markdown(overview)
+        modalHeader = dcc.Markdown("##### Directed acyclic graph (Dag)")
+        specificInfo = "###### Current Dag \n" + overview
+        general = "\n###### General Info \nIn this dag each node represents a component wether that is a Kernel, BaseSLC, MetaSLC, BaseMLC or MetaMLC."
+        performance = "\n\nThe best **performance** achieved with this node in a solution is given  by the color of the node. If maximisation is assumed the colors will be ranging from yellow to red. In case of minimisation the colors are ranging from lightblue to darkblue. A node is grey if the component has been part of solution but no performance value is available. (This might happen if there came up exceptions during evaluation of the solution candidate.)"
+        edge = "\n\nThe **thickness of an edge** corresponds to how often those two components have been used in a solution together. If an edge is colored black, it means the connection has been used more than ten times."
+        modalText = dcc.Markdown(specificInfo + general + performance + edge)
         return not is_open, modalHeader, modalText
 
     elif triggeredID == "btnHelp":
-        modalHeader = dcc.Markdown("#### ❔ Help/ Explanation")
-        performance = "##### Performance \n - Given by the colour of a node \n - Maximisation: yellow to darkred \n - Minimisation: blue \n - Grey: No performance value available \n"
-        edge = "##### Edges \n - Thickness corresponds to how often a connection has been used in a solution \n - Color black: connection has been used more than 10 times \n"
-        filter = "##### Filter \n Solution candidates that contain two or more components from one categorie will not be visualised. \n A corresponding message about why a solution candidate is not being visualised can be found in the details section."
-        modalText = dcc.Markdown(performance + edge + filter)
+        modalHeader = dcc.Markdown("##### About this visualisation tool")
+        general = "###### General \nThis is a visualisation tool for AutoML systems where the AutoML process is illustrated through different visual attributes of a directed acyclic graph (dag). Additionally an anytime performance plots enables the user to read off the best achieved performance at a given timestep and a parallel categories plot provides further information.\n"
+        filter = "###### Filter \nThis tool has an implemented filter so that solution candidates containing two or more components from one categorie will not be visualised.\n"
+        development = "###### Development \nThis visualisation tool is being developed as part of a bachelor thesis with the title \"How can a visualisation tool increase trust in AutoML systems and does it help users to better understand AutoML processes? - Development of a visualisation tool for an AutoML system\". The thesis is written at the chair of Artificial Intelligence and Machine Learning (Lehr- und Forschungseinheit Künstliche Intelligenz und Maschinelles Lernen (KIML)) at LMU Munich, headed by Prof. Dr. Eyke Hüllermeier. If you have any questions feel free to contact Laura Bengs (laura.bengs@campus.lmu.de)."
+        modalText = dcc.Markdown(general + filter + development)
         return not is_open, modalHeader, modalText
 
     elif triggeredID == "btnInfoRun":
-        modalHeader = "Run"
-        modalText = "Select a preloaded run or upload a .json file of your searchrun."
+        modalHeader = dcc.Markdown("##### Run")
+        modalText = dcc.Markdown("In this section a preloaded run can be selected for visualisation or a .json file of a searchrun can be uploaded.")
         return not is_open, modalHeader, modalText
 
     elif triggeredID == "btnInfoPerformance":
-        modalHeader = "Performance"
-        modalText = "Only visualise solutions with a performance greater or equal to the following value."
+        modalHeader = dcc.Markdown("##### Performance")
+        modalText = dcc.Markdown("If a performance value is choosen, only solution candidates with a performance greater or equal to this value will be visualised. Please be aware that the performance value has to be a number between 0 and 1 and can only have one digit after the comma.")
+        return not is_open, modalHeader, modalText
+
+    elif triggeredID == 'btnInfoEvalMeasure':
+        modalHeader = dcc.Markdown("##### Evaluation Measure")
+        modalText = dcc.Markdown("Here an other evaluation measure (besides the one the optimisation was based on) can be choosen. There are measurements available for minimisation as well as maximisation. Please select \"performance\" as optimisation value when interpreting the graph as otherwise the colors could be misleading.")
         return not is_open, modalHeader, modalText
 
     return is_open, "", ""
