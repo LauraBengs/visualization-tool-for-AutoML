@@ -34,7 +34,7 @@ overview = ""
 
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME])
 app.title = "Visualisation tool for AutoML"
 
 app.layout = html.Div([
@@ -43,7 +43,7 @@ app.layout = html.Div([
             dbc.Row(html.Div([
                 dbc.Row([
                     dbc.Col(html.H4("Run"), width=3),
-                    dbc.Col(html.Button('i', id='btnInfoRun', n_clicks=0, className="infoButton"), width=1),
+                    dbc.Col(html.I(id='btnInfoRun', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
                     html.Hr(),
                 ]),
                 html.Div([html.H5("Select run"),
@@ -78,12 +78,12 @@ app.layout = html.Div([
                 html.Hr(),
                 dbc.Row([
                     dbc.Col(html.H5("Performance"), width=7),
-                    dbc.Col(html.Button('i', id='btnInfoPerformance', n_clicks=0, className="infoButton"), width=1),
+                    dbc.Col(html.I(id='btnInfoPerformance', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
                 ]),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
                 dbc.Row([
                     dbc.Col(html.H5("Evaluation Measure"), width=6),
-                    dbc.Col(html.Button('i', id='btnInfoEvalMeasure', n_clicks=0, className="infoButton"), width=1),
+                    dbc.Col(html.I(id='btnInfoEvalMeasure', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
                 ]),
                 dcc.Dropdown(id="evalMeasure",
                              options=[
@@ -121,7 +121,7 @@ app.layout = html.Div([
         dbc.Col([
             dbc.Row([
                 dbc.Col(html.H4("Directed acyclic graph (Dag)"), width=4),
-                dbc.Col(html.Button('i', id='btnInfoDag', n_clicks=0, className="infoButton"), width=1),
+                dbc.Col(html.I(id='btnInfoDag', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
                 html.Hr()
             ]),
             dbc.Row([
@@ -162,15 +162,16 @@ app.layout = html.Div([
     html.Div(
         dbc.Row([
             dbc.Col(html.H3("Visualisation tool for AutoML", className='headline'), width=4),
-            dbc.Col(html.Button('?', id='btnHelp', n_clicks=0), width=1),
+            dbc.Col(html.I(id='btnHelp', n_clicks=0, className="fa-solid fa-circle-info help"), width=1),
             dbc.Col(html.Div([
                 dcc.Slider(min, max, 1, value=min, marks=None, tooltip={"placement": "bottom", "always_visible": True}, id="slider"),
                 dbc.Row([
-                    dbc.Col(html.Button('|◁', id='btnMin', n_clicks=0), width=2),
-                    dbc.Col(html.Button('←', id='btnBack', n_clicks=0), width=2),
-                    dbc.Col(html.Button('▷', id='btnStart', n_clicks=0), width=2),
-                    dbc.Col(html.Button('→', id='btnNext', n_clicks=0), width=2),
-                    dbc.Col(html.Button('▷|', id='btnMax', n_clicks=0), width=2)
+                    dbc.Col(html.I(id='btnMin', n_clicks=0, className="fa-solid fa-backward-fast"), width=2),
+                    dbc.Col(html.I(id='btnBack', n_clicks=0, className="fa-solid fa-backward-step"), width=2),
+                    dbc.Col(html.I(id='btnStart', n_clicks=0, className="fa-solid fa-play", style={'display': 'block'}), width=2),
+                    dbc.Col(html.I(id='btnPause', n_clicks=0, className="fa-solid fa-pause", style={'display': 'none'}), width=2),
+                    dbc.Col(html.I(id='btnNext', n_clicks=0, className="fa-solid fa-forward-step"), width=2),
+                    dbc.Col(html.I(id='btnMax', n_clicks=0, className="fa-solid fa-forward-fast"), width=2)
                 ]),
             ], id='controls', style={'display': 'none'}))
         ]),
@@ -446,10 +447,10 @@ def getPlotData():
     return anytimePlotData, parallelCategoriesPlotData
 
 
-@callback(Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output("btnStart", "children"), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
-          Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnStart", "children"), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
-          State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'))
-def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled):
+@callback(Output('btnStart', 'style'), Output('btnPause', 'style'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+          Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('btnStart', 'n_clicks'), Input('btnPause', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
+          State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'), State('btnPause', 'style'), State('btnStart', 'style'))
+def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, n6, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled, pause, play):
     global edges
     global nodes
     edges = {}
@@ -489,7 +490,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
             globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
         else:
             warning = "Please upload a .json file"
-            return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, btnStartSymbol, newStyle, runLength, currValue, disabled, intervalValue
+            return play, pause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname)
@@ -511,7 +512,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
 
     if restrictions == None:
         warning = "Please enter a valid restriction (value: between 0 and 1, steps: 0.1)"
-        return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, btnStartSymbol, newStyle, runLength, currValue, disabled, intervalValue
+        return play, pause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
 
     if runname == "searchspace":
         controlsStyle = {'display': 'none'}
@@ -528,30 +529,37 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
 
         if "btnStart" == ctx.triggered_id and disabled:
             disabled = False
+            play = {'display': 'none'}
+            pause = {'display': 'block'}
             btnStartSymbol = "||"
-        elif "btnStart" == ctx.triggered_id and not disabled:
+        elif "btnPause" == ctx.triggered_id and not disabled:
             disabled = True
-            btnStartSymbol = "▷"
+            play = {'display': 'block'}
+            pause = {'display': 'none'}
         elif "btnNext" == ctx.triggered_id and currValue < max:
             currValue += 1
             intervalValue = currValue
             disabled = True
-            btnStartSymbol = "▷"
+            play = {'display': 'block'}
+            pause = {'display': 'none'}
         elif "btnBack" == ctx.triggered_id and currValue > min:
             currValue -= 1
             intervalValue = currValue
             disabled = True
-            btnStartSymbol = "▷"
+            play = {'display': 'block'}
+            pause = {'display': 'none'}
         elif "btnMin" == ctx.triggered_id or max != runLength:
             currValue = min
             intervalValue = currValue
             disabled = True
-            btnStartSymbol = "▷"
+            play = {'display': 'block'}
+            pause = {'display': 'none'}
         elif "btnMax" == ctx.triggered_id:
             currValue = max
             intervalValue = currValue
             disabled = True
-            btnStartSymbol = "▷"
+            play = {'display': 'block'}
+            pause = {'display': 'none'}
 
         if not disabled and intervalValue <= max:
             currValue = intervalValue
@@ -600,7 +608,7 @@ def interactions(evalMeasure, upload, btnStartSymbol, n1, n2, n3, n4, n5, runnam
 
     overview = msg
 
-    return bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, btnStartSymbol, newStyle, runLength, currValue, disabled, intervalValue
+    return play, pause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
 
 
 if __name__ == '__main__':

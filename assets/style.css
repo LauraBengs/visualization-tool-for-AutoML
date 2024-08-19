@@ -51,3 +51,11 @@ Div .headline {
     color: var(--third);
     padding: 15px 10px;
 }
+
+.fa-solid.fa-pause, .fa-solid.fa-play, .fa-solid.fa-circle-info.help, .fa-solid.fa-backward-fast, .fa-solid.fa-forward-fast, .fa-solid.fa-backward-step, .fa-solid.fa-forward-step {
+    color: var(--third);
+}
+
+.fa-solid.fa-circle-info{
+    color: var(--main);
+}
