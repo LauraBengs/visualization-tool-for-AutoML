@@ -20,47 +20,49 @@ iBM = 1
 yMM = 0
 iMM = 1
 
+distance = 50
+
 components = []
 for i in range(0, len(allComponentNames)):
     if categories[i] == "kernel":
         x = 0
         y = yK
         if yK >= 0:
-            yK = yK - iK * 60
+            yK = yK - iK * distance
         else:
-            yK = yK + iK * 60
+            yK = yK + iK * distance
         iK += 1
     elif categories[i] == "baseSLC":
-        x = 300
+        x = 350
         y = yBS
         if yBS >= 0:
-            yBS = yBS - iBS * 60
+            yBS = yBS - iBS * distance
         else:
-            yBS = yBS + iBS * 60
+            yBS = yBS + iBS * distance
         iBS += 1
     elif categories[i] == "metaSLC":
-        x = 600
+        x = 700
         y = yMS
         if yMS >= 0:
-            yMS = yMS - iMS * 60
+            yMS = yMS - iMS * distance
         else:
-            yMS = yMS + iMS * 60
+            yMS = yMS + iMS * distance
         iMS += 1
     elif categories[i] == "baseMLC":
-        x = 900
+        x = 1050
         y = yBM
         if yBM >= 0:
-            yBM = yBM - iBM * 60
+            yBM = yBM - iBM * distance
         else:
-            yBM = yBM + iBM * 60
+            yBM = yBM + iBM * distance
         iBM += 1
     elif categories[i] == "metaMLC":
-        x = 1200
+        x = 1400
         y = yMM
         if yMM >= 0:
-            yMM = yMM - iMM * 60
+            yMM = yMM - iMM * distance
         else:
-            yMM = yMM + iMM * 60
+            yMM = yMM + iMM * distance
         iMM += 1
 
     components.append({'data': {'id': allComponentNames[i], 'label': allComponentNames[i]}, 'position': {'x': x, 'y': y}, 'classes': categories[i]})

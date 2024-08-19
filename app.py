@@ -74,17 +74,14 @@ app.layout = html.Div([
                                'borderRadius': '5px',
                                'textAlign': 'center'},
                            ),
-                html.H4("Settings"),
+                dbc.Row([
+                    dbc.Col(html.H4("Settings"), width=7),
+                    dbc.Col(html.I(id='btnInfoSettings', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
+                ]),
                 html.Hr(),
-                dbc.Row([
-                    dbc.Col(html.H5("Performance"), width=7),
-                    dbc.Col(html.I(id='btnInfoPerformance', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
-                ]),
+                dbc.Col(html.H5("Performance"), width=7),
                 dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
-                dbc.Row([
-                    dbc.Col(html.H5("Evaluation Measure"), width=6),
-                    dbc.Col(html.I(id='btnInfoEvalMeasure', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
-                ]),
+                dbc.Col(html.H5("Evaluation Measure"), width=6),
                 dcc.Dropdown(id="evalMeasure",
                              options=[
                                 {"label": "performance", "value": "performance"},
@@ -266,9 +263,9 @@ def toggle_modal(data, is_open, currValue):
 
 
 @callback(Output("smallModal", "is_open"), Output('smallModal-header', 'children'), Output('smallModal-text', 'children'),
-          Input('btnInfoDag', 'n_clicks'), Input('btnHelp', 'n_clicks'), Input('btnInfoRun', 'n_clicks'), Input('btnInfoPerformance', 'n_clicks'), Input('btnInfoEvalMeasure', 'n_clicks'),
+          Input('btnInfoDag', 'n_clicks'), Input('btnHelp', 'n_clicks'), Input('btnInfoRun', 'n_clicks'), Input('btnInfoSettings', 'n_clicks'),
           State('modal', 'is_open'))
-def documentation(n1, n2, n3, n4, n5, is_open):
+def documentation(n1, n2, n3, n4, is_open):
     global overview
     triggeredID = ctx.triggered_id
 
@@ -294,14 +291,11 @@ def documentation(n1, n2, n3, n4, n5, is_open):
         modalText = dcc.Markdown("In this section a preloaded run can be selected for visualisation or a .json file of a searchrun can be uploaded.")
         return not is_open, modalHeader, modalText
 
-    elif triggeredID == "btnInfoPerformance":
-        modalHeader = dcc.Markdown("##### Performance")
-        modalText = dcc.Markdown("If a performance value is choosen, only solution candidates with a performance greater or equal to this value will be visualised. Please be aware that the performance value has to be a number between 0 and 1 and can only have one digit after the comma.")
-        return not is_open, modalHeader, modalText
-
-    elif triggeredID == 'btnInfoEvalMeasure':
-        modalHeader = dcc.Markdown("##### Evaluation Measure")
-        modalText = dcc.Markdown("Here an other evaluation measure (besides the one the optimisation was based on) can be choosen. There are measurements available for minimisation as well as maximisation. Please select \"performance\" as optimisation value when interpreting the graph as otherwise the colors could be misleading.")
+    elif triggeredID == "btnInfoSettings":
+        modalHeader = dcc.Markdown("##### Settings")
+        performance = "###### Performance \nIf a performance value is choosen, only solution candidates with a performance greater or equal to this value will be visualised. Please be aware that the performance value has to be a number between 0 and 1 and can only have one digit after the comma.\n\n"
+        evalMeasure = "###### Evaluation Measure \nHere an other evaluation measure (besides the one the optimisation was based on) can be choosen. There are measurements available for minimisation as well as maximisation. Please select \"performance\" as optimisation value when interpreting the graph as otherwise the colors could be misleading."
+        modalText = dcc.Markdown(performance + evalMeasure)
         return not is_open, modalHeader, modalText
 
     return is_open, "", ""
