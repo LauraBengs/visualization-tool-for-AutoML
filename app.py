@@ -139,6 +139,7 @@ app.layout = html.Div([
                 dbc.Col([
                     html.H6(id='bestSolutionHeader'),
                     html.Hr(),
+                    html.Div(id='bestSolTimestamp', className="small"),
                     html.Div(id='bestSolution'),
                     html.H6(id='solutionHeader'),
                     html.Hr(),
@@ -218,7 +219,7 @@ def getInfosForModal(data, currValue):
 
         info = run.copy()
         info = info.iloc[:currValue+1]
-        info = info[info.valid == True]
+        # info = info[info.valid == True]
         info = info[info[componentCategory] == componentName]
 
         parameterList = searchSpaceHandler.getComponentParameters(componentName, searchspace)
@@ -240,7 +241,7 @@ def getInfosForModal(data, currValue):
                 dataToBeAdded = newData[parameter]
                 info.insert(8, parameter, dataToBeAdded, True)
 
-        info = info[["timestamp", "performance", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["exceptions"]]
+        info = info[["timestamp", "valid", "performance", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["exceptions"]]
         timesteps = list(info.index.values)
         info.insert(0, "timestep", timesteps, True)
         runInfo = dash_table.DataTable(info.to_dict("records"), [{"name": i, "id": i} for i in info.columns], style_cell={'textAlign': 'left'})
@@ -468,7 +469,7 @@ def createPlots():
     return anytimePlotData, parallelCategoriesPlot
 
 
-@callback(Output('timestamp', 'children'), Output('playPause', 'children'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('bestSolTimestamp', 'children'), Output('timestamp', 'children'), Output('playPause', 'children'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('playPause', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'), State('playPause', 'children'))
 def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled, playPause):
@@ -498,6 +499,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
     controlsStyle = {'display': 'block'}
     global overview
     timestamp = ""
+    bestSolTimestamp = ""
     minimisation = evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]
 
     if upload != None:
@@ -513,7 +515,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
             globalAnytimePlotData, globalParallelCategoriesPlot = createPlots()
         else:
             warning = "Please upload a .json file"
-            return timestamp, playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
+            return bestSolTimestamp, timestamp, playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
         upload = None
     elif runname != "searchspace" and runname != runSelector:
         jsonFile = open(runname)
@@ -535,7 +537,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
 
     if restrictions == None:
         warning = "Please enter a valid restriction (value: between 0 and 1, steps: 0.1)"
-        return timestamp, playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
+        return bestSolTimestamp, timestamp, playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
 
     if runname == "searchspace":
         controlsStyle = {'display': 'none'}
@@ -607,8 +609,8 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
 
         newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, restrictions, currValue, evalMeasure, minimisation)
         if bestSol != None:
-            _, bestTimestamp, components, parameterValues, _, _ = runHandler.getSolutionDetails(run, bestFound)
-            bestSolutionHeader += " found at timestep " + str(bestFound) + " (" + str(bestTimestamp) + ")"
+            _, bestSolTimestamp, components, parameterValues, _, _ = runHandler.getSolutionDetails(run, bestFound)
+            bestSolutionHeader += " found at timestep " + str(bestFound)
             bestSolution = createDag("bestSolutionDag", True, components, parameterValues, bestPerformance, minimisation)
         timestamp, info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, currValue, evalMeasure, minimisation)
         if warning != None and solutionWarning != None:
@@ -624,7 +626,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
 
     overview = msg
 
-    return timestamp, playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
+    return bestSolTimestamp, timestamp, playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
 
 
 if __name__ == '__main__':
