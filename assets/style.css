@@ -62,3 +62,7 @@ Div .headline {
 .fa-solid.fa-circle-info{
     color: var(--main);
 }
+
+.small{
+    font-size: 10px;
+}
