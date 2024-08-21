@@ -22,7 +22,7 @@ uploadedFile = False
 uploadedRunname = None
 
 globalAnytimePlotData = None
-globalParallelCategoriesPlotData = None
+globalParallelCategoriesPlot = None
 
 edges = {}
 nodes = {}
@@ -374,7 +374,7 @@ def showSearchrun(stylesheet, run, restrictions, length, evalMeasure, minimisati
     return stylesheet, bestSolution, bestPerformance, bestFound
 
 
-def createDag(isValid, components, parameterValues, performance, minimisation):
+def createDag(dagId, isValid, components, parameterValues, performance, minimisation):
     components = list(reversed(components))
     nodes = []
     x = 0
@@ -394,7 +394,7 @@ def createDag(isValid, components, parameterValues, performance, minimisation):
         color = dagHandler.getNodeColor(performance, minimisation)
 
     dag = cyto.Cytoscape(
-        id='solutionDag',
+        id=dagId,
         style={'width': '100%', 'height': '100px'},
         layout={'name': 'preset'},
         elements=data,
@@ -420,7 +420,7 @@ def getSolutionDetails(run, length, evalMeasure, minimisation):
     performances = run[evalMeasure]
     performance = performances[length]
 
-    info = createDag(isValid, components, parameterValues, performance, minimisation)
+    info = createDag("solutionDag", isValid, components, parameterValues, performance, minimisation)
 
     if pd.isna(solExceptions):
         exceptions = "There are no exceptions for this solution."
@@ -453,16 +453,7 @@ def getSolutionDetails(run, length, evalMeasure, minimisation):
     return timestamp, info, exceptions, warning, evaluation
 
 
-def createPlots(currValue):
-    anytimePlot = px.scatter()
-    anytimePlot = px.line(globalAnytimePlotData, y="performance", line_shape='hv')
-    anytimePlot.add_vline(x=currValue, line_color="red")
-    parallelPlot = px.scatter()
-    parallelPlot = px.parallel_categories(globalParallelCategoriesPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
-    return anytimePlot, parallelPlot
-
-
-def getPlotData():
+def createPlots():
     anytimePlotData = run.copy()
     anytimePlotData = anytimePlotData[anytimePlotData.valid == True]
     anytimePlotData = anytimePlotData["performance"]
@@ -473,7 +464,8 @@ def getPlotData():
     parallelCategoriesPlotData = parallelCategoriesPlotData[parallelCategoriesPlotData.valid == True]
     parallelCategoriesPlotData = parallelCategoriesPlotData[["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"]]
     parallelCategoriesPlotData = parallelCategoriesPlotData.fillna("Not used")
-    return anytimePlotData, parallelCategoriesPlotData
+    parallelCategoriesPlot = px.parallel_categories(parallelCategoriesPlotData, dimensions=["kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"])
+    return anytimePlotData, parallelCategoriesPlot
 
 
 @callback(Output('timestamp', 'children'), Output('playPause', 'children'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
@@ -502,7 +494,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
     anytimePlot = px.scatter()
     parallelPlot = px.scatter()
     global globalAnytimePlotData
-    global globalParallelCategoriesPlotData
+    global globalParallelCategoriesPlot
     controlsStyle = {'display': 'block'}
     global overview
     timestamp = ""
@@ -518,7 +510,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
             uploadedRunname = uploadName
             uploadedFile = True
             runname = uploadName
-            globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
+            globalAnytimePlotData, globalParallelCategoriesPlot = createPlots()
         else:
             warning = "Please upload a .json file"
             return timestamp, playPause, bestSolution, bestSolutionHeader, controlsStyle, parallelPlot, anytimePlot, evaluation, warning, upload, solutionHeader, info, exceptions, newStyle, runLength, currValue, disabled, intervalValue
@@ -532,7 +524,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
         runSelector = runname
         uploadedFile = False
         uploadedRunname = None
-        globalAnytimePlotData, globalParallelCategoriesPlotData = getPlotData()
+        globalAnytimePlotData, globalParallelCategoriesPlot = createPlots()
     elif uploadedFile:
         runname = uploadedRunname
     elif runname == "searchspace" and runname != runSelector:
@@ -617,14 +609,16 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
         if bestSol != None:
             _, bestTimestamp, components, parameterValues, performance, _ = runHandler.getSolutionDetails(run, bestFound)
             bestSolutionHeader += " found at timestep " + str(bestFound) + "(" + str(bestTimestamp) + ")"
-            bestSolution = createDag(True, components, parameterValues, bestPerformance, minimisation)
+            bestSolution = createDag("bestSolutionDag", True, components, parameterValues, bestPerformance, minimisation)
         timestamp, info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, currValue, evalMeasure, minimisation)
         if warning != None and solutionWarning != None:
             warning += "\n\n" + solutionWarning
         elif warning == None and solutionWarning != None:
             warning = solutionWarning
 
-        anytimePlot, parallelPlot = createPlots(currValue)
+        anytimePlot = px.line(globalAnytimePlotData, y="performance", line_shape='hv')
+        anytimePlot.add_vline(x=currValue, line_color="red")
+        parallelPlot = globalParallelCategoriesPlot
 
     intervalValue = currValue
 
