@@ -137,10 +137,10 @@ app.layout = html.Div([
                         responsive=True),
                 ], width=6),
                 dbc.Col([
-                    html.H5(id='bestSolutionHeader'),
+                    html.H6(id='bestSolutionHeader'),
                     html.Hr(),
                     html.Div(id='bestSolution'),
-                    html.H5(id='solutionHeader'),
+                    html.H6(id='solutionHeader'),
                     html.Hr(),
                     html.Div(id='solution'),
                     html.Details([html.Summary("Click here for exceptions"), html.Div(id='exceptions')]),
@@ -276,10 +276,10 @@ def documentation(n1, n2, n3, n4, is_open):
     if triggeredID == "btnInfoDag":
         modalHeader = dcc.Markdown("##### Directed acyclic graph (Dag)")
         specificInfo = "###### Current Dag \n" + overview
-        general = "\n###### General Info \nIn this dag each node represents a component wether that is a Kernel, BaseSLC, MetaSLC, BaseMLC or MetaMLC."
+        general = "\n###### General Info \nIn this dag each node represents a component. The first column contains all components belonging to the category \"Kernel\". The second column is for the category \"BaseSLC\", the third for \"MetaSLC\", the fourth column contains components belonging to the category \"BaseMLC\" and the last column is for the category \"MetaMLC\"."
         performance = "\n\nThe best **performance** achieved with this node in a solution is given  by the color of the node. If maximisation is assumed the colors will be ranging from yellow to red. In case of minimisation the colors are ranging from lightblue to darkblue. A node is grey if the component has been part of solution but no performance value is available. (This might happen if there came up exceptions during evaluation of the solution candidate.)"
         edge = "\n\nThe **thickness of an edge** corresponds to how often those two components have been used in a solution together. If an edge is colored black, it means the connection has been used more than ten times."
-        modalText = dcc.Markdown(specificInfo + general + performance + edge)
+        modalText = dcc.Markdown(specificInfo + "\n\n --- " + general + performance + edge)
         return not is_open, modalHeader, modalText
 
     elif triggeredID == "btnHelp":
@@ -541,7 +541,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
         controlsStyle = {'display': 'none'}
         msg = "This is the dag showing all components and possible connections for this searchspace."
         solutionHeader += "x"
-        bestSolutionHeader += " found at timestep x"
+        bestSolutionHeader += " found at timestep z"
         bestSolution = "Infos about the best found solution until timestep x will be provided here."
         info = "Infos about the solution candidate at timestep x will be provided here."
         exceptions = "Infos about exceptions will be provided here."

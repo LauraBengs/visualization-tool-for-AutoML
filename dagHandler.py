@@ -93,7 +93,7 @@ style = [
 stylesheetSearchspace = [{'selector': 'node', 'style': {'content': 'data(label)'}},
                          {'selector': '.kernel', 'style': {'background-color': '#EC9F05'}},
                          {'selector': '.baseSLC', 'style': {'background-color': '#4A6C6F'}},
-                         {'selector': '.metaSLC', 'style': {'background-color': '#A1C084'}},
+                         {'selector': '.metaSLC', 'style': {'background-color': '#3F6634'}},
                          {'selector': '.baseMLC', 'style': {'background-color': '#A63446'}},
                          {'selector': '.metaMLC', 'style': {'background-color': '#D89A9E'}},
                          {'selector': 'edge', 'style': {'line-color': '#adaaaa'}}]
