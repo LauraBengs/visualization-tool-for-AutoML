@@ -42,11 +42,11 @@ app.layout = html.Div([
         dbc.Col([
             dbc.Row(html.Div([
                 dbc.Row([
-                    dbc.Col(html.H4("Run"), width=3),
+                    dbc.Col(html.H5("Run"), width=3),
                     dbc.Col(html.I(id='btnInfoRun', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
                     html.Hr(),
                 ]),
-                html.Div([html.H5("Select run"),
+                html.Div([html.H6("Select preloaded run"),
                           dcc.Dropdown(id="runSelector", options=[{"label": "Show searchspace", "value": "searchspace"},
                                                                   {"label": "best_first_747_4h", "value": "runs/best_first_747_4h.json"},
                                                                   {"label": "bohb_eval_407", "value": "runs/bohb_eval_407.json"},
@@ -62,8 +62,9 @@ app.layout = html.Div([
                                                                   {"label": "random_eval_151", "value": "runs/random_eval_151.json"}
                                                                   ],
                                        value="searchspace",
-                                       clearable=False)]),
-                html.H5("Upload run"),
+                                       clearable=False,
+                                       style={'margin': '3px'})]),
+                html.H6("Upload run"),
                 dcc.Upload(id='uploadRun', children=html.Div(['Drag and Drop or \n', html.A('Select Files')]),
                            style={
                                'width': '100%',
@@ -72,16 +73,17 @@ app.layout = html.Div([
                                'borderWidth': '1px',
                                'borderStyle': 'dashed',
                                'borderRadius': '5px',
-                               'textAlign': 'center'},
+                               'textAlign': 'center',
+                               'margin': '5px'},
                            ),
                 dbc.Row([
-                    dbc.Col(html.H4("Settings"), width=7),
+                    dbc.Col(html.H5("Settings"), width=5),
                     dbc.Col(html.I(id='btnInfoSettings', n_clicks=0, className="fa-solid fa-circle-info"), width=1),
+                    html.Hr(),
                 ]),
-                html.Hr(),
-                dbc.Col(html.H5("Performance"), width=7),
-                dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0),
-                dbc.Col(html.H5("Evaluation Measure"), width=6),
+                html.H6("Performance threshold"),
+                dcc.Input(id="runRestrictions", type="number", placeholder="Define restriction (value between 0 and 1)", min=0, max=1, step=0.1, value=0, style={'margin': '5px'}),
+                html.H6("Evaluation Measure"),
                 dcc.Dropdown(id="evalMeasure",
                              options=[
                                 {"label": "performance", "value": "performance"},
@@ -111,7 +113,8 @@ app.layout = html.Div([
                                 {"label": "JaccardIndex_median", "value": "JaccardIndex_median"},
                              ],
                              value="performance",
-                             clearable=False)
+                             clearable=False,
+                             style={'margin': '3px'})
             ], className='sidebar'))
         ], width=2),
 

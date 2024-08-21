@@ -1,6 +1,7 @@
 :root{
     --main: #353a47;
     --second: #8a8d91;
+    --secondDarker: #7a7c80;
     --third: #e4e5eb;
     --warning: #f7ec59;
     --danger: #e94f37;
@@ -8,6 +9,7 @@
 
 h1, h2, h3, h4, h5, h6 {
     color: black;
+    margin: 5px;
 }
 
 Hr {
@@ -54,6 +56,7 @@ Div .headline {
 
 .fa-solid.fa-pause, .fa-solid.fa-play, .fa-solid.fa-circle-info.help, .fa-solid.fa-backward-fast, .fa-solid.fa-forward-fast, .fa-solid.fa-backward-step, .fa-solid.fa-forward-step {
     color: var(--third);
+    margin-left: 75px;
 }
 
 .fa-solid.fa-circle-info{
