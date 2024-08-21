@@ -607,8 +607,8 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
 
         newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, restrictions, currValue, evalMeasure, minimisation)
         if bestSol != None:
-            _, bestTimestamp, components, parameterValues, performance, _ = runHandler.getSolutionDetails(run, bestFound)
-            bestSolutionHeader += " found at timestep " + str(bestFound) + "(" + str(bestTimestamp) + ")"
+            _, bestTimestamp, components, parameterValues, _, _ = runHandler.getSolutionDetails(run, bestFound)
+            bestSolutionHeader += " found at timestep " + str(bestFound) + " (" + str(bestTimestamp) + ")"
             bestSolution = createDag("bestSolutionDag", True, components, parameterValues, bestPerformance, minimisation)
         timestamp, info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, currValue, evalMeasure, minimisation)
         if warning != None and solutionWarning != None:
