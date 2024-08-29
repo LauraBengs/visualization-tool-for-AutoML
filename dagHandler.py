@@ -1,6 +1,8 @@
 import searchSpaceHandler
 import matplotlib as mpl
 import numpy as np
+import pandas as pd
+import dash_cytoscape as cyto
 
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 allComponentNames = searchspace["name"].to_numpy()
@@ -119,3 +121,45 @@ def getNodeColor(solPerformance, minimisation):
     else:
         color = colorFader('yellow', 'darkred', solPerformance)
     return color
+
+
+def createDag(dagId, isValid, components, parameterValues, performance, minimisation):
+    components = list(reversed(components))
+    nodes = []
+    x = 0
+    for comp in components:
+        nodes.append({'data': {'id': comp, 'label': comp}, 'position': {'x': x, 'y': 0}})
+        x += 200
+
+    edges = []
+    if len(components) >= 2:
+        for i in range(len(components)-1):
+            edges.append({'data': {'id': (components[i]+"-"+components[i+1]), 'source': components[i], 'target': components[i+1], 'weight': 1}})
+
+    data = nodes + edges
+
+    color = "grey"
+    if isValid and not pd.isna(performance):
+        color = getNodeColor(performance, minimisation)
+
+    dag = cyto.Cytoscape(
+        id=dagId,
+        style={'width': '100%', 'height': '100px'},
+        layout={'name': 'preset'},
+        elements=data,
+        stylesheet=[
+            {'selector': 'node', 'style': {'content': 'data(label)', 'background-color': color}},
+            {'selector': 'edge', 'style': {'line-color': '#adaaaa', 'target-arrow-shape': 'triangle',  'curve-style': 'bezier'}}
+        ],
+        responsive=True),
+    return dag
+
+
+def getInvisibleDag(dagId):
+    dag = cyto.Cytoscape(
+        id=dagId,
+        style={'width': '0%', 'height': '0px'},
+        layout={'name': 'preset'},
+        elements=[{'data': {'id': "comp", 'label': "comp"}, 'position': {'x': 0, 'y': 0}}],
+        responsive=True)
+    return dag

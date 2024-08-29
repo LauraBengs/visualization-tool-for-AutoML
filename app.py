@@ -32,9 +32,11 @@ max = 0
 
 overview = ""
 
+bestTimestep = 0
+
 searchspace = searchSpaceHandler.getSearchSpaceAsDF()
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME])
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], suppress_callback_exceptions=True)
 app.title = "Visualisation tool for AutoML"
 
 app.layout = html.Div([
@@ -219,7 +221,6 @@ def getInfosForModal(data, currValue):
 
         info = run.copy()
         info = info.iloc[:currValue+1]
-        # info = info[info.valid == True]
         info = info[info[componentCategory] == componentName]
 
         parameterList = searchSpaceHandler.getComponentParameters(componentName, searchspace)
@@ -244,9 +245,50 @@ def getInfosForModal(data, currValue):
         info = info[["timestamp", "valid", "performance", "kernel", "baseSLC", "metaSLC", "baseMLC", "metaMLC"] + parameterList + ["exceptions"]]
         timesteps = list(info.index.values)
         info.insert(0, "timestep", timesteps, True)
-        runInfo = dash_table.DataTable(info.to_dict("records"), [{"name": i, "id": i} for i in info.columns], style_cell={'textAlign': 'left'})
+        global bestTimestep
+        runInfo = dash_table.DataTable(
+            info.to_dict("records"),
+            [{"name": i, "id": i} for i in info.columns],
+            style_cell={'textAlign': 'left'},
+            style_data_conditional=[{'if': {'filter_query': f'{{timestep}}={currValue}'}, 'backgroundColor': '#fcfa77'},
+                                    {'if': {'filter_query': f'{{timestep}}={bestTimestep}'}, 'backgroundColor': '#63b886'}
+                                    ],
+            filter_action='native'
+        )
 
     return componentName, generalInfo, runInfo
+
+
+@callback(Output("modal", "is_open", allow_duplicate=True), Output("modal-header", "children", allow_duplicate=True), Output("modal-text", "children", allow_duplicate=True), Output("modal-table", "children", allow_duplicate=True),
+          Input('bestSolutionDag', 'tapNodeData'),
+          State("modal", "is_open"), State("slider", "value"),
+          prevent_initial_call=True)
+def toggle_modalBest(dataBestSol, is_open, currValue):
+    triggeredID = ctx.triggered_id
+
+    if triggeredID == "bestSolutionDag" and dataBestSol is not None:
+        header, generalInfo, runInfo = getInfosForModal(dataBestSol, currValue)
+        modalHeader = dcc.Markdown("#### " + header)
+        modalText = dcc.Markdown(generalInfo)
+        return not is_open, modalHeader, modalText, runInfo
+
+    return is_open, '', '', ''
+
+
+@callback(Output("modal", "is_open", allow_duplicate=True), Output("modal-header", "children", allow_duplicate=True), Output("modal-text", "children", allow_duplicate=True), Output("modal-table", "children", allow_duplicate=True),
+          Input('solutionDag', 'tapNodeData'),
+          State("modal", "is_open"), State("slider", "value"),
+          prevent_initial_call=True)
+def toggle_modalSol(dataSol, is_open, currValue):
+    triggeredID = ctx.triggered_id
+
+    if triggeredID == "solutionDag" and dataSol is not None:
+        header, generalInfo, runInfo = getInfosForModal(dataSol, currValue)
+        modalHeader = dcc.Markdown("#### " + header)
+        modalText = dcc.Markdown(generalInfo)
+        return not is_open, modalHeader, modalText, runInfo
+
+    return is_open, '', '', ''
 
 
 @callback(Output("modal", "is_open"), Output("modal-header", "children"), Output("modal-text", "children"), Output("modal-table", "children"),
@@ -375,38 +417,6 @@ def showSearchrun(stylesheet, run, restrictions, length, evalMeasure, minimisati
     return stylesheet, bestSolution, bestPerformance, bestFound
 
 
-def createDag(dagId, isValid, components, parameterValues, performance, minimisation):
-    components = list(reversed(components))
-    nodes = []
-    x = 0
-    for comp in components:
-        nodes.append({'data': {'id': comp, 'label': comp}, 'position': {'x': x, 'y': 0}})
-        x += 200
-
-    edges = []
-    if len(components) >= 2:
-        for i in range(len(components)-1):
-            edges.append({'data': {'id': (components[i]+"-"+components[i+1]), 'source': components[i], 'target': components[i+1], 'weight': 1}})
-
-    data = nodes + edges
-
-    color = ""
-    if isValid and not pd.isna(performance):
-        color = dagHandler.getNodeColor(performance, minimisation)
-
-    dag = cyto.Cytoscape(
-        id=dagId,
-        style={'width': '100%', 'height': '100px'},
-        layout={'name': 'preset'},
-        elements=data,
-        stylesheet=[
-            {'selector': 'node', 'style': {'content': 'data(label)', 'background-color': color}},
-            {'selector': 'edge', 'style': {'line-color': '#adaaaa', 'target-arrow-shape': 'triangle',  'curve-style': 'bezier'}}
-        ],
-        responsive=True),
-    return dag
-
-
 def getSolutionDetails(run, length, evalMeasure, minimisation):
     warning = None
     exceptions = None
@@ -421,7 +431,7 @@ def getSolutionDetails(run, length, evalMeasure, minimisation):
     performances = run[evalMeasure]
     performance = performances[length]
 
-    info = createDag("solutionDag", isValid, components, parameterValues, performance, minimisation)
+    info = dagHandler.createDag("solutionDag", isValid, components, parameterValues, performance, minimisation)
 
     if pd.isna(solExceptions):
         exceptions = "There are no exceptions for this solution."
@@ -469,7 +479,7 @@ def createPlots():
     return anytimePlotData, parallelCategoriesPlot
 
 
-@callback(Output('bestSolTimestamp', 'children'), Output('timestamp', 'children'), Output('playPause', 'children'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output("solution", "children"), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output("slider", "max"), Output("slider", "value"), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
+@callback(Output('bestSolTimestamp', 'children'), Output('timestamp', 'children'), Output('playPause', 'children'), Output('bestSolution', 'children'), Output('bestSolutionHeader', 'children'), Output('controls', 'style'), Output('parallelPlot', 'figure'), Output('anytimePlot', 'figure'), Output('evalReport', 'children'), Output('solutionWarning', 'children'), Output('uploadRun', 'contents'), Output('solutionHeader', 'children'), Output('solution', 'children'), Output('exceptions', 'children'), Output('dag', 'stylesheet'), Output('slider', 'max'), Output('slider', 'value'), Output('interval-component', 'disabled'), Output('interval-component', 'n_intervals'),
           Input('evalMeasure', 'value'), Input('uploadRun', 'contents'), Input("btnNext", 'n_clicks'), Input('btnBack', 'n_clicks'), Input("btnMin", "n_clicks"), Input("btnMax", "n_clicks"), Input('playPause', 'n_clicks'), Input("runSelector", "value"), Input("runRestrictions", "value"), Input("slider", "value"), Input('interval-component', 'n_intervals'),
           State('uploadRun', 'filename'), State("slider", "min"), State("slider", "max"), State('interval-component', 'disabled'), State('playPause', 'children'))
 def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions, currValue, intervalValue, uploadName, min, max, disabled, playPause):
@@ -482,7 +492,6 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
     exceptions = ""
     solutionHeader = "Details about solution candidate at timestep "
     bestSolutionHeader = "Best solution"
-    bestSolution = "No valid solution has been found yet."
     runLength = 0
     global run
     global runSelector
@@ -500,6 +509,7 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
     global overview
     timestamp = ""
     bestSolTimestamp = ""
+    bestSolution = "No valid solution has been found yet."
     minimisation = evalMeasure in ["HammingLoss_min", "HammingLoss_max", "HammingLoss_mean", "HammingLoss_median"]
 
     if upload != None:
@@ -610,8 +620,10 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
         newStyle, bestSol, bestPerformance, bestFound = showSearchrun(newStyle, run, restrictions, currValue, evalMeasure, minimisation)
         if bestSol != None:
             _, bestSolTimestamp, components, parameterValues, _, _ = runHandler.getSolutionDetails(run, bestFound)
+            global bestTimestep
+            bestTimestep = bestFound
             bestSolutionHeader += " found at timestep " + str(bestFound)
-            bestSolution = createDag("bestSolutionDag", True, components, parameterValues, bestPerformance, minimisation)
+            bestSolution = dagHandler.createDag("bestSolutionDag", True, components, parameterValues, bestPerformance, minimisation)
         timestamp, info, exceptions, solutionWarning, evaluation = getSolutionDetails(run, currValue, evalMeasure, minimisation)
         if warning != None and solutionWarning != None:
             warning += "\n\n" + solutionWarning
