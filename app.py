@@ -321,7 +321,7 @@ def documentation(n1, n2, n3, n4, is_open):
         specificInfo = "###### Current Dag \n" + overview
         general = "\n###### General Info \nIn this dag each node represents a component. The first column contains all components belonging to the category \"Kernel\". The second column is for the category \"BaseSLC\", the third for \"MetaSLC\", the fourth column contains components belonging to the category \"BaseMLC\" and the last column is for the category \"MetaMLC\"."
         performance = "\n\nThe best **performance** achieved with this node in a solution is given  by the color of the node. If maximisation is assumed the colors will be ranging from yellow to red. In case of minimisation the colors are ranging from lightblue to darkblue. A node is grey if the component has been part of solution but no performance value is available. (This might happen if there came up exceptions during evaluation of the solution candidate.)"
-        edge = "\n\nThe **thickness of an edge** corresponds to how often those two components have been used in a solution together. If an edge is colored black, it means the connection has been used more than ten times."
+        edge = "\n\nThe **thickness of an edge** corresponds to how often those two components have been used in a solution together. If an edge is colored black, it means the connection has been used more than 20 times."
         modalText = dcc.Markdown(specificInfo + "\n\n --- " + general + performance + edge)
         return not is_open, modalHeader, modalText
 
@@ -642,4 +642,4 @@ def interactions(evalMeasure, upload, n1, n2, n3, n4, n5, runname, restrictions,
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

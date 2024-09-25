@@ -36,6 +36,7 @@ def getRunAsDF(data, searchspace):
     for element in data:
         elemTimestamp = element.get('timestamp_found')
         timestamp = pd.to_datetime(int(elemTimestamp), utc=True, unit='ms')
+        timestamp = timestamp.tz_convert(tz="Europe/Berlin")
         formattedTimestamp = timestamp.strftime(r"%d.%m.%Y %H:%M:%S:%f")[:-3]
         dataDict["timestamp"].append(formattedTimestamp)
 
@@ -96,7 +97,10 @@ def printElement(element):
     performance = element.get('eval_value')
     print("performance:", performance)
     exception = element.get('exception')
-    print("exception:", exception)
+    if exception == None:
+        print("exception: no")
+    else:
+        print("exception: yes")
 
 
 def getComponents(element):
@@ -211,3 +215,61 @@ def getDetailedEvaluationReport(run, timestep):
             report[measure] = run[measure][timestep]
 
     return evalExists, report
+
+
+def getDataForSurvey():
+    runname = "runs/best_first_747_4h.json"
+    # runname = "runs/bohb_eval_407.json"
+    # runname = "runs/ggp_eval_407.json"
+    jsonFile = open(runname)
+    convertedFile = json.load(jsonFile)
+    data = convertedFile[2].get('data')
+    jsonFile.close()
+
+    dataDict = {"timestamp": [],
+                "components": [],
+                "parameterValues": [],
+                "performance": [],
+                "exceptions": [],
+                }
+
+    for i in range(0, 4):
+        element = data[i]
+
+        print("solution candidate " + str(i))
+        print("timestep: " + str(i))
+
+        elemTimestamp = element.get('timestamp_found')
+        timestamp = pd.to_datetime(int(elemTimestamp), utc=True, unit='ms')
+        timestamp = timestamp.tz_convert(tz="Europe/Berlin")
+        formattedTimestamp = timestamp.strftime(r"%d.%m.%Y %H:%M:%S:%f")[:-3]
+        dataDict["timestamp"].append(formattedTimestamp)
+        print("timestamp:", formattedTimestamp)
+
+        elemComponents, elemParameterValues = getComponents(element)
+        dataDict["components"].append(elemComponents)
+        dataDict["parameterValues"].append(elemParameterValues)
+        print("components:", elemComponents)
+        print("parameterValues:", elemParameterValues)
+
+        elemPerformance = element.get('eval_value')
+        if elemPerformance == None:
+            elemPerformance = np.nan
+        dataDict["performance"].append(float(elemPerformance))
+        print("performance:", elemPerformance)
+
+        elemException = element.get('exception')
+        if elemException == None:
+            elemException = "no"
+        else:
+            elemException = "yes"
+        dataDict["exceptions"].append(elemException)
+        print("exception: " + elemException)
+
+        print("--------------------------------------------------------------")
+
+    run = pd.DataFrame(dataDict)
+    run.to_excel("example_dataframe.xlsx")
+
+
+# getDataForSurvey()
